@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :fluffy_nest, FluffyNest.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "your_password",
   hostname: "localhost",
   database: "fluffy_nest_dev",
   stacktrace: true,

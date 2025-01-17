@@ -2,11 +2,21 @@ defmodule FluffyNestWeb.Router do
   use FluffyNestWeb, :router
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug :accepts, ["json", "html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
   end
 
   scope "/api", FluffyNestWeb do
     pipe_through :api
+  end
+
+  # 测试接口s
+  scope "/hello", FluffyNestWeb do
+    get "/", HelloController, :index
+    get "/current", HelloController, :current
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
