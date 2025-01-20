@@ -1,0 +1,37 @@
+//
+// Created by cvrain on 25-1-19.
+//
+
+#ifndef SCHEMA_HPP
+#define SCHEMA_HPP
+
+#include <string>
+#include <string_view>
+
+namespace types{
+    class UserSchema {
+    public:
+        std::string id;
+        std::string name;
+        std::string password;
+        std::string email;
+        std::string role;
+        std::string icon;
+        std::string signature;
+        long create_time;
+        long update_time;
+
+        static constexpr std::string_view key_id = "id";
+        static constexpr std::string_view key_name = "name";
+        static constexpr std::string_view key_password = "password";
+        static constexpr std::string_view key_email = "email";
+        static constexpr std::string_view key_role = "role";
+        static constexpr std::string_view key_icon = "icon";
+        static constexpr std::string_view key_signature = "signature";
+        static constexpr std::string_view key_create_time = "create_time";
+        static constexpr std::string_view key_update_time = "update_time";
+    };
+
+}
+
+#endif //SCHEMA_HPP

@@ -5,10 +5,10 @@
 using namespace drogon;
 
 namespace api {
-    class hello final: public HttpController<hello> {
+    class Hello final: public HttpController<Hello> {
     public:
         METHOD_LIST_BEGIN
-            METHOD_ADD(hello::index, "/index", Get);
+            METHOD_ADD(Hello::index, "/index", Get);
 
         METHOD_LIST_END
 

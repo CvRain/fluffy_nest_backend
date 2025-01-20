@@ -9,6 +9,12 @@
         "orm",
         "postgres"
       ]
+    },
+    {
+      "name": "fmt"
+    },
+    {
+      "name": "spdlog"
     }
   ]
 }

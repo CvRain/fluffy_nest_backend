@@ -3,7 +3,7 @@
 using namespace api;
 
 // Add definition of your processing function here
-void hello::index(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+void Hello::index(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     const auto &currentTimeStamp = std::chrono::system_clock::now();
     const auto &timeStamp = std::chrono::duration_cast<std::chrono::seconds>(currentTimeStamp.time_since_epoch()).
             count();
