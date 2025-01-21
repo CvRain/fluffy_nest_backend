@@ -12,7 +12,10 @@ namespace service {
     class UserServices final: public models::Singleton<UserServices>{
     public:
         [[nodiscard]] auto size() const -> size_t;
-        auto append(const type::UserSchema& user) const -> type::result<std::string_view>;
+        auto append(const type::UserSchema& user) const -> type::result<std::string>;
+        auto user_exist(const std::string& id, const std::string& email) const -> type::result<bool>;
+        auto id_exist(const std::string& id) const -> std::optional<bool>;
+        auto email_exist(const std::string& email) const -> std::optional<bool>;
     private:
         std::shared_ptr<models::UserModel> user_model{};
     };

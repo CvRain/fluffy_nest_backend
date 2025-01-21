@@ -7,6 +7,7 @@
 
 #include <string>
 #include <string_view>
+#include <trantor/utils/Date.h>
 
 namespace type{
     class UserSchema {
@@ -18,8 +19,8 @@ namespace type{
         int role;
         std::string icon;
         std::string signature;
-        long create_time;
-        long update_time;
+        trantor::Date create_time;
+        trantor::Date update_time;
 
         static constexpr std::string_view key_id = "id";
         static constexpr std::string_view key_name = "name";
