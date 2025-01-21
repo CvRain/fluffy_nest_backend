@@ -4,10 +4,10 @@
 
 #include "exception_handler.hpp"
 
-#include "drogon_specialization.hpp"
-#include "nlohmann_json_request.hpp"
-#include "service/logger.hpp"
-#include "type.hpp"
+#include "services/logger.hpp"
+#include "types/nlohmann_json_request.hpp"
+#include "types/type.hpp"
+#include "utils/drogon_specialization.hpp"
 
 namespace exception {
     void ExceptionHandler::handle(const drogon::HttpRequestPtr&                 request,
@@ -27,39 +27,33 @@ namespace exception {
     void ExceptionHandler::nlohmann_exception(const drogon::HttpRequestPtr&                 request,
                                               std::function<void(const HttpResponsePtr&)>&& callback,
                                               const std::exception&                         exception) {
-        service_delight::Logger::get_instance().log(
-                service_delight::ConsoleLogger, spdlog::level::debug, "Enter ExceptionHandler::nlohmann_exception");
-
-        model_delight::BasicResponse response{
+        type::BasicResponse response{
                 .code = drogon::k400BadRequest, .message = "k400BadRequest", .result = exception.what(), .data = {}};
+
+        service::Logger::get_instance().get_logger()->error("ExceptionHandler::nlohmann_exception {}",
+                                                            exception.what());
+
         callback(newHttpJsonResponse(response.to_json()));
     }
 
     void ExceptionHandler::base_exception(const drogon::HttpRequestPtr&                 request,
                                           std::function<void(const HttpResponsePtr&)>&& callback,
                                           const std::exception&                         exception) {
-        service_delight::Logger::get_instance().log(
-                service_delight::ConsoleLogger, spdlog::level::debug, "Enter ExceptionHandler::base_exception");
-
         const auto* base_exception = dynamic_cast<const BaseException*>(&exception);
-        service_delight::Logger::get_instance().log(service_delight::ConsoleLogger | service_delight::BasicLogger,
-                                                    spdlog::level::err,
-                                                    "ExceptionHandler: {}",
-                                                    base_exception->response().result);
+
+        service::Logger::get_instance().get_logger()->error("ExceptionHandler::base_exception {}",
+            exception.what());
+
         callback(newHttpJsonResponse(base_exception->response().to_json()));
     }
 
     void ExceptionHandler::standard_exception(const HttpRequestPtr&                         request,
                                               std::function<void(const HttpResponsePtr&)>&& callback,
                                               const std::exception&                         exception) {
-        service_delight::Logger::get_instance().log(
-                service_delight::ConsoleLogger, spdlog::level::debug, "Enter ExceptionHandler::standard_exception");
+        service::Logger::get_instance().get_logger()->error("ExceptionHandler::standard_exception {}",
+                                                            exception.what());
 
-        service_delight::Logger::get_instance().log(service_delight::ConsoleLogger | service_delight::BasicLogger,
-                                                    spdlog::level::err,
-                                                    "ExceptionHandler: {}",
-                                                    exception.what());
-        callback(newHttpJsonResponse(model_delight::BasicResponse{
+        callback(newHttpJsonResponse(type::BasicResponse{
                 .code    = drogon::k500InternalServerError,
                 .message = "k500InternalServerError",
                 .result  = exception.what(),

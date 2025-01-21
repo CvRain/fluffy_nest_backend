@@ -1,6 +1,7 @@
 #pragma once
 
 #include <drogon/HttpController.h>
+#include "utils/drogon_specialization.hpp"
 
 using namespace drogon;
 

@@ -8,7 +8,7 @@ int main() {
     constexpr auto setting_path = "./default_setting.json";
     drogon::app().loadConfigFile(setting_path);
 
-    service::Logger::get_instance().init();
+    service::Logger::get_instance().init(spdlog::level::trace);
     print_logo();
     drogon::app().run();
 

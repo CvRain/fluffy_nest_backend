@@ -8,7 +8,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h> 
 
 namespace service {
-    void Logger::init(const std::string& log_level, const std::string& log_file_path) {
+    void Logger::init(spdlog::level::level_enum level, const std::string& log_file_path) {
         // 设置日志格式
         const std::string pattern = "[%Y-%m-%d %H:%M:%S.%e] [%n] [%^%l%$] %v";
 
@@ -17,17 +17,7 @@ namespace service {
         logger->set_pattern(pattern);
 
         // 设置日志级别
-        if (log_level == "debug") {
-            logger->set_level(spdlog::level::debug);
-        } else if (log_level == "warn") {
-            logger->set_level(spdlog::level::warn);
-        } else if (log_level == "error") {
-            logger->set_level(spdlog::level::err);
-        } else if (log_level == "critical") {
-            logger->set_level(spdlog::level::critical);
-        } else {
-            logger->set_level(spdlog::level::info);
-        }
+        logger->set_level(level);
 
         // 如果指定了日志文件路径，则创建一个文件日志记录器
         if (!log_file_path.empty()) {

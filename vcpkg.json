@@ -15,6 +15,9 @@
     },
     {
       "name": "spdlog"
+    },
+    {
+      "name": "nlohmann-json"
     }
   ]
 }

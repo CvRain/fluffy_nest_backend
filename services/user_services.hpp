@@ -11,7 +11,8 @@
 namespace service {
     class UserServices final: public models::Singleton<UserServices>{
     public:
-        [[nodiscard]] size_t size() const;
+        [[nodiscard]] auto size() const -> size_t;
+        auto append(const type::UserSchema& user) const -> type::result<std::string_view>;
     private:
         std::shared_ptr<models::UserModel> user_model{};
     };

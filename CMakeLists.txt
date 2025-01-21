@@ -18,19 +18,61 @@ add_executable(${PROJECT_NAME} main.cc)
 find_package(Drogon CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Drogon::Drogon)
 target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 # ##############################################################################
 
-aux_source_directory(controllers CTL_SRC)
-aux_source_directory(filters FILTER_SRC)
-aux_source_directory(plugins PLUGIN_SRC)
-aux_source_directory(models MODEL_SRC)
-aux_source_directory(types TYPES_SRC)
-aux_source_directory(services SERVICES_SRC)
+#aux_source_directory(controllers CTL_SRC)
+#aux_source_directory(filters FILTER_SRC)
+#aux_source_directory(plugins PLUGIN_SRC)
+#aux_source_directory(models MODEL_SRC)
+#aux_source_directory(types TYPES_SRC)
+#aux_source_directory(services SERVICES_SRC)
+
+set(CTL_SRC
+        controllers/api_hello.h
+        controllers/api_hello.cc
+        controllers/api_user.h
+        controllers/api_user.cc
+)
+
+set(FILTER_SRC)
+
+set(PLUGIN_SRC)
+
+set(MODEL_SRC
+        models/singleton_prototype.hpp
+        models/users.hpp
+        models/users.cpp
+)
+
+set(TYPES_SRC
+        types/base.hpp
+        types/basic_value.hpp
+        types/nlohmann_json_request.hpp
+        types/nlohmann_json_response.hpp
+        types/schema.hpp
+        types/type.hpp
+)
+
+set(SERVICES_SRC
+        services/logger.hpp
+        services/logger.cpp
+        services/user_services.hpp
+        services/user_services.cpp
+)
+
+set(UTILS_SRC
+        utils/date.h
+        utils/drogon_specialization.hpp
+        utils/exception_handler.cpp
+        utils/exception_handler.hpp
+)
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
         ${CMAKE_CURRENT_BINARY_DIR})
@@ -55,6 +97,7 @@ target_sources(${PROJECT_NAME}
         ${MODEL_SRC}
         ${TYPES_SRC}
         ${SERVICES_SRC}
+        ${UTILS_SRC}
 )
 # ##############################################################################
 # uncomment the following line for dynamically loading views 

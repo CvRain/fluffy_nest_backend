@@ -8,14 +8,14 @@
 #include <string>
 #include <string_view>
 
-namespace types{
+namespace type{
     class UserSchema {
     public:
         std::string id;
         std::string name;
         std::string password;
         std::string email;
-        std::string role;
+        int role;
         std::string icon;
         std::string signature;
         long create_time;
