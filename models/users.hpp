@@ -18,27 +18,27 @@ namespace models {
 
         /// 统计表中存在多少条数据
         /// @return 成功为数据大小，失败为异常
-        [[nodiscard]] auto size() const -> type::result<size_t>;
+        [[nodiscard]] static auto size() -> type::result<size_t>;
 
         /// 插入一条数据
         /// @return 插入成功为ture,插入失败为false, 插入错误为异常
-        auto append(const type::UserSchema& user) -> type::result<bool>;
+        static auto append(const type::UserSchema& user) -> type::result<bool>;
 
         /// 判断表中是否存在id
         /// @return 存在为true，不存在为false，判断错误为异常
-        auto has_id(const std::string& id) const -> type::result<bool>;
+        static auto has_id(const std::string& id)  -> type::result<bool>;
 
         /// 判断表中是否存在email
         /// @return 存在为true，不存在为false，判断错误为异常
-        auto has_email(const std::string& email) const -> type::result<bool>;
+        [[nodiscard]] static auto has_email(const std::string& email) -> type::result<bool>;
 
         /// 通过id删除一条数据
         /// @return 返回执行后影响的行数，删除错误为异常
-        auto remove_by_id(const std::string& id) -> type::result<int>;
+        static auto remove_by_id(const std::string& id) -> type::result<int>;
 
         /// 通过email删除一条数据
         /// @return 返回执行后影响的行数，删除错误为异常
-        auto remove_by_email(const std::string& email) -> type::result<int>;
+        static auto remove_by_email(const std::string& email) -> type::result<int>;
     };
 }
 

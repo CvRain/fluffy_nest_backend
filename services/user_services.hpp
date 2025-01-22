@@ -9,18 +9,21 @@
 #include "models/users.hpp"
 
 namespace service {
-    class UserServices final: public models::Singleton<UserServices>{
+    class UserServices final : public models::Singleton<UserServices> {
     public:
         [[nodiscard]] auto size() const -> size_t;
-        auto append(const type::UserSchema& user) const -> type::result<std::string>;
-        auto user_exist(const std::string& id, const std::string& email) const -> type::result<bool>;
-        auto id_exist(const std::string& id) const -> std::optional<bool>;
-        auto email_exist(const std::string& email) const -> std::optional<bool>;
+        [[nodiscard]] auto append(const type::UserSchema& user) const -> type::result<std::string>;
+        [[nodiscard]] auto user_exist(const std::string& id, const std::string& email) const -> type::result<bool>;
+        [[nodiscard]] auto id_exist(const std::string& id) const -> std::optional<bool>;
+        [[nodiscard]] auto email_exist(const std::string& email) const -> std::optional<bool>;
+        [[nodiscard]] auto remove_by_id(const std::string& id) const -> std::optional<bool>;
+        [[nodiscard]] auto remove_by_email(const std::string& email) const -> std::optional<bool>;
+
+
     private:
         std::shared_ptr<models::UserModel> user_model{};
     };
-}
+}  // namespace service
 
 
-
-#endif //USER_SERVICES_HPP
+#endif  // USER_SERVICES_HPP

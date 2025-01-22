@@ -4,6 +4,8 @@
 
 #include "users.hpp"
 
+#include <drogon/orm/Criteria.h>
+#include <drogon/orm/Mapper.h>
 #include <fmt/format.h>
 
 #include "services/logger.hpp"
@@ -11,7 +13,7 @@
 
 models::UserModel::UserModel() { service::Logger::get_instance().get_logger()->info("UserModel::UserModel"); }
 
-auto models::UserModel::size() const -> type::result<size_t> {
+auto models::UserModel::size() -> type::result<size_t> {
     const auto                         db_client = drogon::app().getDbClient();
     std::promise<type::result<size_t>> promise;
     auto                               callback = [&](const drogon::orm::Result &result) {
@@ -67,13 +69,13 @@ auto models::UserModel::append(const type::UserSchema &user) -> type::result<boo
     return promise.get_future().get();
 }
 
-auto models::UserModel::has_id(const std::string &id) const -> type::result<bool> {
+auto models::UserModel::has_id(const std::string &id) -> type::result<bool> {
     const auto db_client = drogon::app().getDbClient();
 
     std::promise<type::result<bool>> promise;
 
     auto callback = [&](const drogon::orm::Result &result) {
-        if (result.at(0).at(type::UserSchema::key_id.data()).length() > 0) {
+        if (result.at(0).at("id_exist").as<bool>() == true) {
             promise.set_value(true);
             service::Logger::get_instance().get_logger()->info("UserModel::has_id: id: {}", id);
             return;
@@ -86,17 +88,20 @@ auto models::UserModel::has_id(const std::string &id) const -> type::result<bool
         promise.set_value(std::unexpected<std::string_view>(error_str));
     };
 
-    db_client->execSqlAsync("select id from users where id = $1", callback, exceptionCallback, id);
+    db_client->execSqlAsync("select exists(select id from users where users.id = $1) as id_exist;",
+                            callback,
+                            exceptionCallback,
+                            id);
     return promise.get_future().get();
 }
 
-auto models::UserModel::has_email(const std::string &email) const -> type::result<bool> {
-    const auto db_client = drogon::app().getDbClient();
+auto models::UserModel::has_email(const std::string &email) -> type::result<bool> {
+    auto db_client = drogon::app().getDbClient();
 
     std::promise<type::result<bool>> promise;
 
     auto callback = [&](const drogon::orm::Result &result) {
-        if (result.at(0).at(type::UserSchema::key_email.data()).length() > 0) {
+        if (result.at(0).at("email_exist").as<bool>() == true) {
             promise.set_value(true);
             service::Logger::get_instance().get_logger()->info("UserModel::has_email: email: {}", email);
             return;
@@ -110,16 +115,68 @@ auto models::UserModel::has_email(const std::string &email) const -> type::resul
         promise.set_value(std::unexpected<std::string_view>(error_str));
     };
 
-    db_client->execSqlAsync("select email from users where email = $1", callback, exceptionCallback, email);
+    db_client->execSqlAsync(
+            "select exists("
+            "select users.email "
+            "from users "
+            "where users.email = $1"
+            ") as email_exist;",
+            callback,
+            exceptionCallback,
+            email);
+
     return promise.get_future().get();
 }
 
-//todo
+// todo
 auto models::UserModel::remove_by_id(const std::string &id) -> type::result<int> {
-    return 0;
+    const auto db_client = drogon::app().getDbClient();
+
+    std::promise<type::result<int>> promise;
+
+    auto callback = [&](const drogon::orm::Result &result) {
+        if (result.affectedRows() <= 0) {
+            promise.set_value(0);
+            return;
+        }
+        promise.set_value(result.affectedRows());
+        service::Logger::get_instance().get_logger()->info("UserModel::remove_by_id: id: {}", id);
+    };
+
+    auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
+        const auto error_str = fmt::format("UserModel::remove_by_id: exception: {}", e.base().what());
+        service::Logger::get_instance().get_logger()->error("UserModel::remove_by_id exception: {}", e.base().what());
+        promise.set_value(std::unexpected<std::string_view>(error_str));
+    };
+
+    const auto exec_sql = fmt::format("delete from users where id = '{}'", id);
+    db_client->execSqlAsync(exec_sql, callback, exceptionCallback);
+    return promise.get_future().get();
 }
 
-//todo
+// todo
 auto models::UserModel::remove_by_email(const std::string &email) -> type::result<int> {
-    return 0;
+    const auto db_client = drogon::app().getDbClient();
+
+    std::promise<type::result<int>> promise;
+
+    auto callback = [&](const drogon::orm::Result &result) {
+        if (result.affectedRows() <= 0) {
+            promise.set_value(0);
+            return;
+        }
+        promise.set_value(result.affectedRows());
+        service::Logger::get_instance().get_logger()->info("UserModel::remove_by_email: email: {}", email);
+    };
+
+    auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
+        const auto error_str = fmt::format("UserModel::remove_by_email: exception: {}", e.base().what());
+        service::Logger::get_instance().get_logger()->error("UserModel::remove_by_email exception: {}",
+                                                            e.base().what());
+        promise.set_value(std::unexpected<std::string_view>(error_str));
+    };
+
+    const auto exec_sql = fmt::format("delete from users where email = '{}'", email);
+    db_client->execSqlAsync(exec_sql, callback, exceptionCallback);
+    return promise.get_future().get();
 }
