@@ -39,6 +39,14 @@ namespace models {
         /// 通过email删除一条数据
         /// @return 返回执行后影响的行数，删除错误为异常
         static auto remove_by_email(const std::string& email) -> type::result<int>;
+
+        /// 通过id获取一条数据
+        /// @return 返回获取的数据，获取错误为异常
+        static auto get_by_id(const std::string& id) -> type::result<type::UserSchema>;
+
+        /// 通过email获取一条数据
+        /// @return 返回获取的数据，获取错误为异常
+        static auto get_by_email(const std::string& email) -> type::result<type::UserSchema>;
     };
 }
 

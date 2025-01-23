@@ -1,0 +1,13 @@
+{
+  "name": "default",
+  "rdbms": "postgresql",
+  "host": "127.0.0.1",
+  "port": 5432,
+  "dbname": "fluffy_nest_dev",
+  "user": "postgres",
+  "passwd": "your_password",
+  "is_fast": false,
+  "number_of_connections": 1,
+  "timeout": -1.0,
+  "auto_batch": false
+}
