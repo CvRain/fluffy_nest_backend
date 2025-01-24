@@ -14,6 +14,8 @@ namespace api {
         METHOD_ADD(User::append, "/append", Options, Post);
         METHOD_ADD(User::remove_by_id, "/remove/id", Options, Delete);
         METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete);
+        METHOD_ADD(User::get_by_id, "/get/id", Options, Get);
+        METHOD_ADD(User::get_by_email, "/get/email", Options, Get);
         METHOD_LIST_END
 
     private:
@@ -21,5 +23,7 @@ namespace api {
         static void append(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void remove_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void remove_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void get_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void get_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api

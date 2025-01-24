@@ -83,5 +83,23 @@ namespace service {
             return false;
         }
         return true;
+    }
+
+    auto UserServices::get_by_id(const std::string& id) const -> std::optional<type::UserSchema> {
+        const auto result = models::UserModel::get_by_id(id);
+        if (not result.has_value()) {
+            service::Logger::get_instance().get_logger()->error("UserServices::get_by_id {}", result.error());
+            throw std::runtime_error(result.error().data());
+        }
+        return result.value();
+    }
+
+    auto UserServices::get_by_email(const std::string& email) const -> std::optional<type::UserSchema> {
+        const auto result = models::UserModel::get_by_email(email);
+        if (not result.has_value()) {
+            service::Logger::get_instance().get_logger()->error("UserServices::get_by_email {}", result.error());
+            throw std::runtime_error(result.error().data());
+        }
+        return result.value();
     };
 }  // namespace service

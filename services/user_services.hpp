@@ -18,6 +18,8 @@ namespace service {
         [[nodiscard]] auto email_exist(const std::string& email) const -> std::optional<bool>;
         [[nodiscard]] auto remove_by_id(const std::string& id) const -> std::optional<bool>;
         [[nodiscard]] auto remove_by_email(const std::string& email) const -> std::optional<bool>;
+        [[nodiscard]] auto get_by_id(const std::string& id) const -> std::optional<type::UserSchema>;
+        [[nodiscard]] auto get_by_email(const std::string& email) const -> std::optional<type::UserSchema>;
 
 
     private:

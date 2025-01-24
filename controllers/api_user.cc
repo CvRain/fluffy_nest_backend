@@ -125,3 +125,74 @@ void User::remove_by_email(const HttpRequestPtr &req, std::function<void(const H
         exception::ExceptionHandler::handle(req, std::move(callback), e);
     }
 }
+void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+    service::Logger::get_instance().get_logger()->debug("User::get_by_id");
+    try {
+        const auto  request_body = fromRequest<nlohmann::json>(*req);
+        const auto &id           = request_body.at(type::UserSchema::key_id).get<std::string>();
+
+        if (not service::UserServices::get_instance().id_exist(id).value()) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::get_by_id k400BadRequest",
+                                               .result  = "id not exist",
+                                               .data    = {}};
+            service::Logger::get_instance().get_logger()->warn("User::get_by_id k400BadRequest id not exist");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
+        const auto user = service::UserServices::get_instance().get_by_id(id).value();
+        const auto data = nlohmann::json{
+                {type::UserSchema::key_id, user.id},
+                {type::UserSchema::key_email, user.email},
+                {type::UserSchema::key_id, user.id},
+                {type::UserSchema::key_create_time, user.create_time.secondsSinceEpoch()},
+                {type::UserSchema::key_update_time, user.update_time.secondsSinceEpoch()},
+                {type::UserSchema::key_role, user.role},
+                {type::UserSchema::key_signature, user.signature},
+                {type::UserSchema::key_icon, user.icon},
+        };
+        type::BasicResponse basic_response{
+                .code = k200OK, .message = "User::get_by_id k200OK", .result = "", .data = data};
+        callback(newHttpJsonResponse(basic_response.to_json()));
+    }
+    catch (const std::exception &e) {
+        exception::ExceptionHandler::handle(req, std::move(callback), e);
+    }
+}
+
+void User::get_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+    service::Logger::get_instance().get_logger()->debug("User::get_by_email");
+
+    try {
+        const auto  request_body = fromRequest<nlohmann::json>(*req);
+        const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
+        if (not service::UserServices::get_instance().email_exist(email).value()) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::get_by_email k400BadRequest",
+                                               .result  = "email not exist",
+                                               .data    = {}};
+            service::Logger::get_instance().get_logger()->warn("User::get_by_email k400BadRequest email not exist");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
+        const auto user = service::UserServices::get_instance().get_by_email(email).value();
+        const auto data = nlohmann::json{
+                {type::UserSchema::key_id, user.id},
+                {type::UserSchema::key_email, user.email},
+                {type::UserSchema::key_id, user.id},
+                {type::UserSchema::key_create_time, user.create_time.secondsSinceEpoch()},
+                {type::UserSchema::key_update_time, user.update_time.secondsSinceEpoch()},
+                {type::UserSchema::key_role, user.role},
+                {type::UserSchema::key_signature, user.signature},
+                {type::UserSchema::key_icon, user.icon},
+        };
+        type::BasicResponse basic_response{
+                .code = k200OK, .message = "User::get_by_email k200OK", .result = "", .data = data};
+        callback(newHttpJsonResponse(basic_response.to_json()));
+    }
+    catch (const std::exception &e) {
+        exception::ExceptionHandler::handle(req, std::move(callback), e);
+    }
+}

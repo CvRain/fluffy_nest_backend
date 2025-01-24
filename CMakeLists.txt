@@ -41,7 +41,13 @@ set(CTL_SRC
         controllers/api_user.cc
 )
 
-set(FILTER_SRC)
+set(FILTER_SRC
+        filters/filter_UserAuth.cc
+        filters/filter_UserAuth.h
+        filters/filter_UserEmailExist.cc
+        filters/filter_UserEmailExist.h
+        filters/filter_UserIdExist.cc
+        filters/filter_UserIdExist.h)
 
 set(PLUGIN_SRC)
 
