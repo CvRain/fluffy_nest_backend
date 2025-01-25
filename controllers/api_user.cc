@@ -131,16 +131,6 @@ void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpRes
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &id           = request_body.at(type::UserSchema::key_id).get<std::string>();
 
-        if (not service::UserServices::get_instance().id_exist(id).value()) {
-            type::BasicResponse basic_response{.code    = k400BadRequest,
-                                               .message = "User::get_by_id k400BadRequest",
-                                               .result  = "id not exist",
-                                               .data    = {}};
-            service::Logger::get_instance().get_logger()->warn("User::get_by_id k400BadRequest id not exist");
-            callback(newHttpJsonResponse(basic_response.to_json()));
-            return;
-        }
-
         const auto user = service::UserServices::get_instance().get_by_id(id).value();
         const auto data = nlohmann::json{
                 {type::UserSchema::key_id, user.id},
@@ -167,15 +157,6 @@ void User::get_by_email(const HttpRequestPtr &req, std::function<void(const Http
     try {
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
-        if (not service::UserServices::get_instance().email_exist(email).value()) {
-            type::BasicResponse basic_response{.code    = k400BadRequest,
-                                               .message = "User::get_by_email k400BadRequest",
-                                               .result  = "email not exist",
-                                               .data    = {}};
-            service::Logger::get_instance().get_logger()->warn("User::get_by_email k400BadRequest email not exist");
-            callback(newHttpJsonResponse(basic_response.to_json()));
-            return;
-        }
 
         const auto user = service::UserServices::get_instance().get_by_email(email).value();
         const auto data = nlohmann::json{

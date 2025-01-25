@@ -42,6 +42,7 @@ set(CTL_SRC
 )
 
 set(FILTER_SRC
+        filters/filter_keywords.h
         filters/filter_UserAuth.cc
         filters/filter_UserAuth.h
         filters/filter_UserEmailExist.cc

@@ -2,6 +2,7 @@
 
 #include <drogon/HttpController.h>
 
+#include "filters/filter_keywords.h"
 #include "utils/drogon_specialization.hpp"
 
 using namespace drogon;
@@ -14,8 +15,8 @@ namespace api {
         METHOD_ADD(User::append, "/append", Options, Post);
         METHOD_ADD(User::remove_by_id, "/remove/id", Options, Delete);
         METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete);
-        METHOD_ADD(User::get_by_id, "/get/id", Options, Get);
-        METHOD_ADD(User::get_by_email, "/get/email", Options, Get);
+        METHOD_ADD(User::get_by_id, "/get/id", Options, filter::keywords::user_id_exist, Get);
+        METHOD_ADD(User::get_by_email, "/get/email", filter::keywords::user_email_exist, Options, Get);
         METHOD_LIST_END
 
     private:
