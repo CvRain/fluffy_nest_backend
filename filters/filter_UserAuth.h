@@ -7,13 +7,15 @@
 #pragma once
 
 #include <drogon/HttpFilter.h>
+#include <drogon/HttpMiddleware.h>
+
 using namespace drogon;
 namespace filter {
 
-    class UserAuth : public HttpFilter<UserAuth> {
+    class UserAuth final: public HttpMiddleware<UserAuth> {
     public:
         UserAuth() = default;
-        void doFilter(const HttpRequestPtr &req, FilterCallback &&fcb, FilterChainCallback &&fccb) override;
+        void invoke(const HttpRequestPtr& req, MiddlewareNextCallback&& nextCb, MiddlewareCallback&& mcb) override;
     };
 
 }  // namespace filter

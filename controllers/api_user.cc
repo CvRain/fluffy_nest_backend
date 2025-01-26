@@ -187,7 +187,8 @@ void User::login(const HttpRequestPtr &req, std::function<void(const HttpRespons
 
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
-        const auto &password     = drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
+        const auto &password =
+                drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
         const auto &user = service::UserServices::get_instance().get_by_email(email).value_or(type::UserSchema{});
 
         if (const auto saved_password = user.password; saved_password != password or saved_password.empty()) {
@@ -202,17 +203,20 @@ void User::login(const HttpRequestPtr &req, std::function<void(const HttpRespons
             return;
         }
 
-        const nlohmann::json header{{type::basic_value::jwt::alg, "HS256"}, {type::basic_value::jwt::typ, "JWT"}};
-        const auto           current_time = fluffy_utils::Date::get_current_timestamp_32();
+        const auto header =
+                nlohmann::json{{type::basic_value::jwt::alg, "HS256"}, {type::basic_value::jwt::typ, "JWT"}};
 
-        const nlohmann::json payload{{type::basic_value::jwt::iss, "storage_delight"},
-                                     {type::basic_value::jwt::exp, current_time + 86400},
+        const auto &current_time  = fluffy_utils::Date::get_current_timestamp_32();
+        const auto &max_token_sec = drogon::app().getCustomConfig()["max_token_sec"].asInt();
+        const auto &random_string = drogon::app().getCustomConfig()["random_string"].asString();
+
+        const nlohmann::json payload{{type::basic_value::jwt::iss, "fluffy_nest"},
+                                     {type::basic_value::jwt::exp, current_time + max_token_sec},
                                      {type::basic_value::jwt::sub, "login"},
                                      {type::basic_value::jwt::iat, current_time},
                                      {type::UserSchema::key_id, user.id}};
 
-        const auto jwt = fluffy_utils::StringEncryption::generate_jwt(
-                header.dump(), payload.dump(), drogon::app().getCustomConfig()["random_string"].asString());
+        const auto jwt = fluffy_utils::StringEncryption::generate_jwt(header.dump(), payload.dump(), random_string);
 
         service::Logger::get_instance().get_logger()->debug("User::login jwt: {}", jwt);
 
