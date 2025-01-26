@@ -8,7 +8,7 @@
 #include <string>
 #include <chrono>
 
-namespace utils {
+namespace fluffy_utils {
     class Date {
     public:
         static inline int32_t get_current_timestamp_32();

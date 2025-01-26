@@ -190,6 +190,7 @@ auto models::UserModel::get_by_id(const std::string &id) -> type::result<type::U
         promise.set_value(type::UserSchema{
                 .id          = result.at(0).at("id").as<std::string>(),
                 .name        = result.at(0).at("name").as<std::string>(),
+                .password    = result.at(0).at("password").as<std::string>(),
                 .email       = result.at(0).at("email").as<std::string>(),
                 .role        = result.at(0).at("role").as<int>(),
                 .icon        = result.at(0).at("icon").as<std::string>(),
@@ -204,11 +205,7 @@ auto models::UserModel::get_by_id(const std::string &id) -> type::result<type::U
         promise.set_value(std::unexpected<std::string_view>(error_str));
     };
 
-    db_client->execSqlAsync(
-            "select id, email, name, icon, signature, role, create_time, update_time from users where users.id = $1",
-            callback,
-            exceptionCallback,
-            id);
+    db_client->execSqlAsync("select * from users where users.id = $1", callback, exceptionCallback, id);
     return promise.get_future().get();
 }
 
@@ -223,14 +220,15 @@ auto models::UserModel::get_by_email(const std::string &email) -> type::result<t
             return;
         }
         promise.set_value(type::UserSchema{
-            .id          = result.at(0).at("id").as<std::string>(),
-            .name        = result.at(0).at("name").as<std::string>(),
-            .email       = result.at(0).at("email").as<std::string>(),
-            .role        = result.at(0).at("role").as<int>(),
-            .icon        = result.at(0).at("icon").as<std::string>(),
-            .signature   = result.at(0).at("signature").as<std::string>(),
-            .create_time = trantor::Date::fromDbString(result.at(0).at("create_time").as<std::string>()),
-            .update_time = trantor::Date::fromDbString(result.at(0).at("update_time").as<std::string>()),
+                .id          = result.at(0).at("id").as<std::string>(),
+                .name        = result.at(0).at("name").as<std::string>(),
+                .password    = result.at(0).at("password").as<std::string>(),
+                .email       = result.at(0).at("email").as<std::string>(),
+                .role        = result.at(0).at("role").as<int>(),
+                .icon        = result.at(0).at("icon").as<std::string>(),
+                .signature   = result.at(0).at("signature").as<std::string>(),
+                .create_time = trantor::Date::fromDbString(result.at(0).at("create_time").as<std::string>()),
+                .update_time = trantor::Date::fromDbString(result.at(0).at("update_time").as<std::string>()),
         });
     };
 
@@ -240,13 +238,6 @@ auto models::UserModel::get_by_email(const std::string &email) -> type::result<t
         promise.set_value(std::unexpected<std::string_view>(error_str));
     };
 
-    db_client->execSqlAsync(
-            "select users.id, users.email, users.name, users.icon, users.signature, users.role, users.create_time, "
-            "users.update_time "
-            "from users "
-            "where users.email = $1",
-            callback,
-            exceptionCallback,
-            email);
+    db_client->execSqlAsync("select * from users where users.email = $1", callback, exceptionCallback, email);
     return promise.get_future().get();
 }

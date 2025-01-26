@@ -17,6 +17,7 @@ namespace api {
         METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete);
         METHOD_ADD(User::get_by_id, "/get/id", Options, filter::keywords::user_id_exist, Get);
         METHOD_ADD(User::get_by_email, "/get/email", filter::keywords::user_email_exist, Options, Get);
+        METHOD_ADD(User::login, "/login", Options, Get, filter::keywords::user_email_exist);
         METHOD_LIST_END
 
     private:
@@ -26,5 +27,6 @@ namespace api {
         static void remove_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void get_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void get_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api

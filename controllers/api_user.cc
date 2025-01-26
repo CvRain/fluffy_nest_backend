@@ -4,7 +4,9 @@
 #include "services/user_services.hpp"
 #include "types/nlohmann_json_response.hpp"
 #include "types/type.hpp"
+#include "utils/date.h"
 #include "utils/exception_handler.hpp"
+#include "utils/string.hpp"
 
 using namespace api;
 
@@ -22,7 +24,7 @@ void User::append(const HttpRequestPtr &req, std::function<void(const HttpRespon
     try {
         type::UserSchema user{};
         user.name     = request_body.at(type::UserSchema::key_name).get<std::string>();
-        user.password = request_body.at(type::UserSchema::key_password).get<std::string>();
+        user.password = drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
         user.email    = request_body.at(type::UserSchema::key_email).get<std::string>();
 
         if (service::UserServices::get_instance().email_exist(user.email).value()) {
@@ -171,6 +173,53 @@ void User::get_by_email(const HttpRequestPtr &req, std::function<void(const Http
         };
         type::BasicResponse basic_response{
                 .code = k200OK, .message = "User::get_by_email k200OK", .result = "", .data = data};
+        callback(newHttpJsonResponse(basic_response.to_json()));
+    }
+    catch (const std::exception &e) {
+        exception::ExceptionHandler::handle(req, std::move(callback), e);
+    }
+}
+void User::login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+    service::Logger::get_instance().get_logger()->debug("User::login");
+    try {
+        const auto request_ip = req->getPeerAddr().toIpPort();
+        service::Logger::get_instance().get_logger()->info("User::login request_ip: {}", request_ip);
+
+        const auto  request_body = fromRequest<nlohmann::json>(*req);
+        const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
+        const auto &password     = drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
+        const auto &user = service::UserServices::get_instance().get_by_email(email).value_or(type::UserSchema{});
+
+        if (const auto saved_password = user.password; saved_password != password or saved_password.empty()) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::login k400BadRequest",
+                                               .result  = "password is wrong",
+                                               .data    = {}};
+            service::Logger::get_instance().get_logger()->warn("User::login k400BadRequest password is wrong");
+            service::Logger::get_instance().get_logger()->debug("User::login request password: {}", password);
+            service::Logger::get_instance().get_logger()->debug("User::login saved password: {}", saved_password);
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
+        const nlohmann::json header{{type::basic_value::jwt::alg, "HS256"}, {type::basic_value::jwt::typ, "JWT"}};
+        const auto           current_time = fluffy_utils::Date::get_current_timestamp_32();
+
+        const nlohmann::json payload{{type::basic_value::jwt::iss, "storage_delight"},
+                                     {type::basic_value::jwt::exp, current_time + 86400},
+                                     {type::basic_value::jwt::sub, "login"},
+                                     {type::basic_value::jwt::iat, current_time},
+                                     {type::UserSchema::key_id, user.id}};
+
+        const auto jwt = fluffy_utils::StringEncryption::generate_jwt(
+                header.dump(), payload.dump(), drogon::app().getCustomConfig()["random_string"].asString());
+
+        service::Logger::get_instance().get_logger()->debug("User::login jwt: {}", jwt);
+
+        const nlohmann::json response_data{
+                {type::UserSchema::key_id, user.id}, {type::UserSchema::key_email, user.email}, {"token", jwt}};
+        type::BasicResponse basic_response{
+                .code = k200OK, .message = "User::login k200OK", .result = "", .data = response_data};
         callback(newHttpJsonResponse(basic_response.to_json()));
     }
     catch (const std::exception &e) {

@@ -79,6 +79,8 @@ set(UTILS_SRC
         utils/drogon_specialization.hpp
         utils/exception_handler.cpp
         utils/exception_handler.hpp
+        utils/string.cpp
+        utils/string.hpp
 )
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views
