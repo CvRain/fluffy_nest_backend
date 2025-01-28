@@ -30,7 +30,7 @@ namespace schema {
     struct JwtPayload {
         std::string iss;
         std::string sub;
-        int         aud;
+        std::string aud;
         int         exp;
         int         iat;
         std::string user_id;

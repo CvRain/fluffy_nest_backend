@@ -6,6 +6,7 @@
 
 #include "services/logger.hpp"
 #include "utils/date.h"
+#include "utils/string.hpp"
 
 namespace service {
     size_t UserServices::size() const {
@@ -101,5 +102,60 @@ namespace service {
             throw std::runtime_error(result.error().data());
         }
         return result.value();
+    }
+
+    auto UserServices::check_token(const std::string& token) -> type::result<bool> {
+        if (token.empty()) {
+            return std::unexpected("token is empty");
+        }
+
+        const auto& current_time  = fluffy_utils::Date::get_current_timestamp_32();
+        const auto& max_token_sec = drogon::app().getCustomConfig()["max_token_sec"].asInt();
+        const auto& random_string = drogon::app().getCustomConfig()["random_string"].asString();
+
+        const auto& parse_jwt_opt = fluffy_utils::StringEncryption::parse_jwt(token, random_string);
+        if (not parse_jwt_opt.has_value()) {
+            return std::unexpected("parse_jwt_opt failed!");
+        }
+
+        const auto& parse_jwt        = parse_jwt_opt.value();
+        const auto [header, payload] = parse_jwt;
+
+        schema::JwtBody jwt_body;
+        jwt_body.header.typ = header.at(type::basic_value::jwt::typ).get<std::string>();
+        jwt_body.header.alg = header.at(type::basic_value::jwt::alg).get<std::string>();
+
+        if (jwt_body.header.typ != "JWT" || jwt_body.header.alg != "HS256") {
+            return std::unexpected("header.typ or header.alg is not JWT or HS256");
+        }
+
+        jwt_body.payload.iss     = payload.at(type::basic_value::jwt::iss).get<std::string>();
+        jwt_body.payload.sub     = payload.at(type::basic_value::jwt::sub).get<std::string>();
+        jwt_body.payload.aud     = payload.at(type::basic_value::jwt::aud).get<std::string>();
+        jwt_body.payload.exp     = payload.at(type::basic_value::jwt::exp).get<int>();
+        jwt_body.payload.iat     = payload.at(type::basic_value::jwt::iat).get<int>();
+        jwt_body.payload.user_id = payload.at(type::UserSchema::key_id).get<std::string>();
+
+        if (current_time - jwt_body.payload.iat > max_token_sec) {
+            return std::unexpected("token expired");
+        }
+
+        if (jwt_body.payload.iss != "fluffy_nest::backend" || jwt_body.payload.sub != "login") {
+            return std::unexpected("iss or sub is not fluffy_nest or login");
+        }
+
+        if (jwt_body.payload.aud != "fluffy_nest::client") {
+            return std::unexpected("aud is not fluffy_nest::client");
+        }
+
+        const auto& id_exist = service::UserServices::get_instance().id_exist(jwt_body.payload.user_id);
+        if (not id_exist.has_value()) {
+            return std::unexpected("id_exist failed!");
+        }
+
+        if (not id_exist.value()) {
+            return std::unexpected("id_exist is false");
+        }
+        return true;
     };
 }  // namespace service

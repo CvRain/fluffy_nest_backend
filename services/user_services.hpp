@@ -20,6 +20,7 @@ namespace service {
         [[nodiscard]] auto remove_by_email(const std::string& email) const -> std::optional<bool>;
         [[nodiscard]] auto get_by_id(const std::string& id) const -> std::optional<type::UserSchema>;
         [[nodiscard]] auto get_by_email(const std::string& email) const -> std::optional<type::UserSchema>;
+        static auto check_token(const std::string& token) -> type::result<bool>;
 
 
     private:

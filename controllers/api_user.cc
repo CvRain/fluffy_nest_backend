@@ -210,10 +210,11 @@ void User::login(const HttpRequestPtr &req, std::function<void(const HttpRespons
         const auto &max_token_sec = drogon::app().getCustomConfig()["max_token_sec"].asInt();
         const auto &random_string = drogon::app().getCustomConfig()["random_string"].asString();
 
-        const nlohmann::json payload{{type::basic_value::jwt::iss, "fluffy_nest"},
+        const nlohmann::json payload{{type::basic_value::jwt::iss, "fluffy_nest::backend"},
                                      {type::basic_value::jwt::exp, current_time + max_token_sec},
                                      {type::basic_value::jwt::sub, "login"},
                                      {type::basic_value::jwt::iat, current_time},
+                                     {type::basic_value::jwt::aud, "fluffy_nest::client"},
                                      {type::UserSchema::key_id, user.id}};
 
         const auto jwt = fluffy_utils::StringEncryption::generate_jwt(header.dump(), payload.dump(), random_string);
@@ -224,6 +225,40 @@ void User::login(const HttpRequestPtr &req, std::function<void(const HttpRespons
                 {type::UserSchema::key_id, user.id}, {type::UserSchema::key_email, user.email}, {"token", jwt}};
         type::BasicResponse basic_response{
                 .code = k200OK, .message = "User::login k200OK", .result = "", .data = response_data};
+        callback(newHttpJsonResponse(basic_response.to_json()));
+    }
+    catch (const std::exception &e) {
+        exception::ExceptionHandler::handle(req, std::move(callback), e);
+    }
+}
+
+void User::token_login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+    service::Logger::get_instance().get_logger()->debug("User::token_login");
+    try {
+        const auto request_ip = req->getPeerAddr().toIpPort();
+        service::Logger::get_instance().get_logger()->info("User::token_login request_ip: {}", request_ip);
+
+        const auto &token        = req->getHeader("Authorization");
+        const auto  check_result = service::UserServices::check_token(token);
+        if (not check_result.has_value()) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::token_login k400BadRequest",
+                                               .result  = check_result.error(),
+                                               .data    = {}};
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
+        if (not check_result.value()) {
+            type::BasicResponse basic_response{.code    = k500InternalServerError,
+                                               .message = "User::token_login k500InternalServerError",
+                                               .result  = "unknown exception",
+                                               .data    = {}};
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+        type::BasicResponse basic_response{
+                .code = k200OK, .message = "User::token_login k200OK", .result = "", .data = {}};
         callback(newHttpJsonResponse(basic_response.to_json()));
     }
     catch (const std::exception &e) {
