@@ -11,6 +11,7 @@ namespace filter {
         static constexpr auto user_id_exist = "filter::UserIdExist";
         static constexpr auto user_email_exist = "filter::UserEmailExist";
         static constexpr auto user_auth = "filter::UserAuth";
+        static constexpr auto enable_cores = "filter::EnableCores";
     };
 }
 

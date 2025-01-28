@@ -17,6 +17,7 @@ namespace filter {
 
         try {
             const auto  request_body = fromRequest<nlohmann::json>(*req);
+            service::Logger::get_instance().get_logger()->debug("UserEmailExist::invoke: {}", request_body.dump());
 
             if (const auto& email = request_body.at("email").get<std::string>();
                 not service::UserServices::get_instance().email_exist(email).value()) {
@@ -32,8 +33,12 @@ namespace filter {
             nextCb([&, mcb = std::move(mcb)](const HttpResponsePtr& resp) { mcb(resp); });
         }
         catch (const std::exception& e) {
-            service::Logger::get_instance().get_logger()->error("UserIdExist::invoke: {}", e.what());
-            mcb(drogon::HttpResponse::newNotFoundResponse());
+            service::Logger::get_instance().get_logger()->error("UserEmailExist::invoke: {}", e.what());
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                              .message = "UserEmailExist::invoke k400BadRequest",
+                                              .result  = e.what(),
+                                              .data    = {}};
+            mcb(newHttpJsonResponse(basic_response.to_json()));
         }
     }
 }  // namespace filter
