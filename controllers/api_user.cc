@@ -238,8 +238,10 @@ void User::token_login(const HttpRequestPtr &req, std::function<void(const HttpR
         const auto request_ip = req->getPeerAddr().toIpPort();
         service::Logger::get_instance().get_logger()->info("User::token_login request_ip: {}", request_ip);
 
-        const auto &token        = req->getHeader("Authorization");
-        const auto  check_result = service::UserServices::check_token(token);
+        const auto token        = req->getHeader("Authorization");
+        service::Logger::get_instance().get_logger()->debug("User::token_login token: {}", token);
+
+        const auto check_result = service::UserServices::check_token(token);
         if (not check_result.has_value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::token_login k400BadRequest",

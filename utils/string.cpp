@@ -257,8 +257,11 @@ namespace fluffy_utils {
         }
 
         // 解码头部和有效载荷
-        std::string header_json = base64_decode(parts[0]);
-        std::string payload_json = base64_decode(parts[1]);
+
+        //std::string header_json = base64_decode(parts[0]);
+        //std::string payload_json = base64_decode(parts[1]);
+        std::string header_json = drogon::utils::base64Decode(parts[0]);
+        std::string payload_json = drogon::utils::base64Decode(parts[1]);
         std::string signature = parts[2];
 
         // 验证签名

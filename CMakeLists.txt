@@ -42,6 +42,8 @@ set(CTL_SRC
 )
 
 set(FILTER_SRC
+        filters/filter_EnableCores.h
+        filters/filter_EnableCores.cc
         filters/filter_keywords.h
         filters/filter_UserAuth.cc
         filters/filter_UserAuth.h
