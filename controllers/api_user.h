@@ -30,5 +30,6 @@ namespace api {
         static void get_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void token_login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void enable_register(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api

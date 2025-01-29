@@ -22,6 +22,16 @@ void User::size(const HttpRequestPtr &req, std::function<void(const HttpResponse
 void User::append(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     const auto &request_body = fromRequest<nlohmann::json>(*req);
     try {
+        if (app().getCustomConfig()["enable_add_user"] == false) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::append k400BadRequest",
+                                               .result  = "add user is disabled",
+                                               .data    = {}};
+            service::Logger::get_instance().get_logger()->warn("User::append k400BadRequest add user is disabled");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
         type::UserSchema user{};
         user.name     = request_body.at(type::UserSchema::key_name).get<std::string>();
         user.password = drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
@@ -238,7 +248,7 @@ void User::token_login(const HttpRequestPtr &req, std::function<void(const HttpR
         const auto request_ip = req->getPeerAddr().toIpPort();
         service::Logger::get_instance().get_logger()->info("User::token_login request_ip: {}", request_ip);
 
-        const auto token        = req->getHeader("Authorization");
+        const auto token = req->getHeader("Authorization");
         service::Logger::get_instance().get_logger()->debug("User::token_login token: {}", token);
 
         const auto check_result = service::UserServices::check_token(token);
@@ -262,6 +272,29 @@ void User::token_login(const HttpRequestPtr &req, std::function<void(const HttpR
         type::BasicResponse basic_response{
                 .code = k200OK, .message = "User::token_login k200OK", .result = "", .data = {}};
         callback(newHttpJsonResponse(basic_response.to_json()));
+    }
+    catch (const std::exception &e) {
+        exception::ExceptionHandler::handle(req, std::move(callback), e);
+    }
+}
+
+void User::enable_register(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+    service::Logger::get_instance().get_logger()->debug("User::enable_register");
+    try {
+        if (const auto enable_add_user = app().getCustomConfig()["enable_add_user"].asBool()) {
+            type::BasicResponse basic_response{.code    = k200OK,
+                                               .message = "User::enable_register k200OK",
+                                               .result  = "server enable add user",
+                                               .data    = {}};
+            callback(newHttpJsonResponse(basic_response.to_json()));
+        }
+        else {
+            type::BasicResponse basic_response{.code    = k403Forbidden,
+                                               .message = "User::enable_register k403Forbidden",
+                                               .result  = "server disable add user",
+                                               .data    = {}};
+            callback(newHttpJsonResponse(basic_response.to_json()));
+        }
     }
     catch (const std::exception &e) {
         exception::ExceptionHandler::handle(req, std::move(callback), e);
