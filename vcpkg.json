@@ -18,6 +18,17 @@
     },
     {
       "name": "nlohmann-json"
+    },
+    {
+      "name": "aws-sdk-cpp",
+      "features": [
+        "s3",
+        "s3-crt",
+        "s3-encryption",
+        "s3control",
+        "s3outposts",
+        "s3tables"
+      ]
     }
   ]
 }
