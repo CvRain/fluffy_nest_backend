@@ -78,6 +78,8 @@ set(SERVICES_SRC
         services/logger.cpp
         services/user_services.hpp
         services/user_services.cpp
+        services/object_storage_service.hpp
+        services/object_storage_service.cpp
 )
 
 set(UTILS_SRC

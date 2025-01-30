@@ -1,29 +1,43 @@
 #include <drogon/drogon.h>
 
 #include "services/logger.hpp"
+#include "services/object_storage_service.hpp"
 
 void print_logo();
+void framework_init();
+void service_init();
+void cleanup();
 
 int main() {
     constexpr auto setting_path = "./default_setting.json";
     drogon::app().loadConfigFile(setting_path);
 
     service::Logger::get_instance().init(spdlog::level::trace);
+
     print_logo();
+    framework_init();
+    service_init();
 
-    // 全局异常处理
-    drogon::app().setExceptionHandler([](const std::exception                            &e,
-                                         const drogon::HttpRequestPtr                    &req,
-                                         std::function<void(drogon::HttpResponsePtr &)> &&callback) {
-        // LOG_DEBUG << e.what();
-        Json::Value json;
-        json["code"]  = drogon::k500InternalServerError;
-        json["error"] = e.what();
-        json["data"]  = "";
-        auto resp     = drogon::HttpResponse::newHttpJsonResponse(json);
-        callback(resp);
-    });
+    drogon::app().run();
+    cleanup();
 
+    return 0;
+}
+
+void print_logo() {
+    constexpr auto text_logo = R"(
+  ______ _     _    _ ______ ________     __     _   _ ______  _____ _______
+ |  ____| |   | |  | |  ____|  ____\ \   / /    | \ | |  ____|/ ____|__   __|
+ | |__  | |   | |  | | |__  | |__   \ \_/ /     |  \| | |__  | (___    | |
+ |  __| | |   | |  | |  __| |  __|   \   /      | . ` |  __|  \___ \   | |
+ | |    | |___| |__| | |    | |       | |       | |\  | |____ ____) |  | |
+ |_|    |______\____/|_|    |_|       |_|       |_| \_|______|_____/   |_|
+)";
+    service::Logger::get_instance().get_logger()->info(text_logo);
+    service::Logger::get_instance().get_logger()->info("Hello fluffy nest");
+}
+
+void framework_init() {
     // 全局异常处理
     drogon::app().setExceptionHandler([](const std::exception                            &e,
                                          const drogon::HttpRequestPtr                    &req,
@@ -66,21 +80,12 @@ int main() {
                 if (const auto &val = req->getHeader("Access-Control-Request-Headers"); !val.empty())
                     resp->addHeader("Access-Control-Allow-Headers", val);
             });
-
-    drogon::app().run();
-
-    return 0;
 }
 
-void print_logo() {
-    constexpr auto text_logo = R"(
-  ______ _     _    _ ______ ________     __     _   _ ______  _____ _______
- |  ____| |   | |  | |  ____|  ____\ \   / /    | \ | |  ____|/ ____|__   __|
- | |__  | |   | |  | | |__  | |__   \ \_/ /     |  \| | |__  | (___    | |
- |  __| | |   | |  | |  __| |  __|   \   /      | . ` |  __|  \___ \   | |
- | |    | |___| |__| | |    | |       | |       | |\  | |____ ____) |  | |
- |_|    |______\____/|_|    |_|       |_|       |_| \_|______|_____/   |_|
-)";
-    service::Logger::get_instance().get_logger()->info(text_logo);
-    service::Logger::get_instance().get_logger()->info("Hello fluffy nest");
+void service_init() {
+    service::ObjectStorageService::get_instance().init();
+}
+
+void cleanup() {
+    service::ObjectStorageService::get_instance().shutdown_api();
 }

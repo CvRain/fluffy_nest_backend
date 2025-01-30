@@ -130,6 +130,11 @@
     "random_string": "teSTaDzgmT3YRye",
     "max_token_sec": 86400,
     "enable_add_user": false,
-    "enable_remove_user": false
+    "enable_remove_user": false,
+    "object_storage": {
+      "endpoint": "",
+      "region": "",
+      "bucket": ""
+    }
   }
 }
