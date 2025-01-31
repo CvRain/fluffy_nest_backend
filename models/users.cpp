@@ -23,7 +23,7 @@ auto models::UserModel::size() -> type::result<size_t> {
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::size: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::size exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
     db_client->execSqlAsync("select count(*) from users", callback, exceptionCallback);
     return promise.get_future().get();
@@ -47,7 +47,7 @@ auto models::UserModel::append(const type::UserSchema &user) -> type::result<boo
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::append: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::append exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     const auto transaction = db_client->newTransaction();
@@ -85,7 +85,7 @@ auto models::UserModel::has_id(const std::string &id) -> type::result<bool> {
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::has_id: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::has_id exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     db_client->execSqlAsync(
@@ -110,7 +110,7 @@ auto models::UserModel::has_email(const std::string &email) -> type::result<bool
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::has_email: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::has_email exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     db_client->execSqlAsync(
@@ -143,7 +143,7 @@ auto models::UserModel::remove_by_id(const std::string &id) -> type::result<int>
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::remove_by_id: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::remove_by_id exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     const auto exec_sql = fmt::format("delete from users where id = '{}'", id);
@@ -169,7 +169,7 @@ auto models::UserModel::remove_by_email(const std::string &email) -> type::resul
         const auto error_str = fmt::format("UserModel::remove_by_email: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::remove_by_email exception: {}",
                                                             e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     const auto exec_sql = fmt::format("delete from users where email = '{}'", email);
@@ -184,7 +184,7 @@ auto models::UserModel::get_by_id(const std::string &id) -> type::result<type::U
 
     auto callback = [&](const drogon::orm::Result &result) {
         if (result.columns() <= 0) {
-            promise.set_value(std::unexpected<std::string_view>("UserModel::get_by_id: user not found"));
+            promise.set_value(std::unexpected("UserModel::get_by_id: user not found"));
             return;
         }
         promise.set_value(type::UserSchema{
@@ -202,7 +202,7 @@ auto models::UserModel::get_by_id(const std::string &id) -> type::result<type::U
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::get_by_id: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::get_by_id exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     db_client->execSqlAsync("select * from users where users.id = $1", callback, exceptionCallback, id);
@@ -216,7 +216,7 @@ auto models::UserModel::get_by_email(const std::string &email) -> type::result<t
 
     auto callback = [&](const drogon::orm::Result &result) {
         if (result.size() <= 0) {
-            promise.set_value(std::unexpected<std::string_view>("UserModel::get_by_email: user not found"));
+            promise.set_value(std::unexpected("UserModel::get_by_email: user not found"));
             return;
         }
         promise.set_value(type::UserSchema{
@@ -235,7 +235,7 @@ auto models::UserModel::get_by_email(const std::string &email) -> type::result<t
     auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
         const auto error_str = fmt::format("UserModel::get_by_email: exception: {}", e.base().what());
         service::Logger::get_instance().get_logger()->error("UserModel::get_by_email exception: {}", e.base().what());
-        promise.set_value(std::unexpected<std::string_view>(error_str));
+        promise.set_value(std::unexpected(error_str));
     };
 
     db_client->execSqlAsync("select * from users where users.email = $1", callback, exceptionCallback, email);

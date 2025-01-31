@@ -10,7 +10,7 @@
 
 namespace type {
     template <typename T>
-    using result = std::expected<T, std::string_view>;
+    using result = std::expected<T, std::string>;
 }
 
 #endif //BASE_HPP

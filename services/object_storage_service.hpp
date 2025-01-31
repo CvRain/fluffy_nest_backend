@@ -10,17 +10,23 @@
 #include <expected>
 
 #include "models/singleton_prototype.hpp"
+#include "types/base.hpp"
 
 
 namespace service {
     class ObjectStorageService : public models::Singleton<ObjectStorageService> {
     public:
-        void init();
-        void shutdown_api() const;
-        auto list_buckets() const -> std::expected<std::vector<Aws::S3::Model::Bucket>, std::string_view>;
+        void               init();
+        void               shutdown_api() const;
+        [[nodiscard]] auto list_buckets() const -> type::result<std::vector<Aws::S3::Model::Bucket>>;
+        [[nodiscard]] auto put_object(const std::string& file_name, const std::string& buffer) const
+                -> type::result<std::string>;
+        [[nodiscard]] static auto create_directory(const std::string& path) -> type::result<bool>;
+
     private:
         std::shared_ptr<Aws::S3::S3Client> s3_client;
-        std::shared_ptr<Aws::SDKOptions> options;
+        std::shared_ptr<Aws::SDKOptions>   options;
+        std::string                        bucket_name;
     };
 
 }  // namespace service

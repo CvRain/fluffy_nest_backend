@@ -1,6 +1,7 @@
 #include "api_user.h"
 
 #include "services/logger.hpp"
+#include "services/object_storage_service.hpp"
 #include "services/user_services.hpp"
 #include "types/nlohmann_json_response.hpp"
 #include "types/type.hpp"
@@ -62,8 +63,21 @@ void User::append(const HttpRequestPtr &req, std::function<void(const HttpRespon
                 {"uuid", uuid},
         };
 
-        auto response =
-                type::BasicResponse{.code = k200OK, .message = "User::append k200OK", .result = "", .data = data};
+        // 用户在数据库创建成功后将会同步在云存储中创建一个uuid的文件夹以及index.md
+        const auto file_name  = uuid + "/index.md";
+        const auto source     = "*Hello world!";
+        const auto put_result = service::ObjectStorageService::get_instance().put_object(file_name, source);
+
+        if (not put_result.has_value()) {
+            exception::BaseException exception{{.code    = k500InternalServerError,
+                                                .message = "User::append k500InternalServerError",
+                                                .result  = put_result.error(),
+                                                .data    = {}}};
+            throw std::move(exception);
+        }
+
+        auto response = type::BasicResponse{
+                .code = k200OK, .message = "User::append k200OK", .result = put_result.value(), .data = data};
 
         callback(newHttpJsonResponse(response.to_json()));
     }

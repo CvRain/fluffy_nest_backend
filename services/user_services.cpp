@@ -116,7 +116,7 @@ namespace service {
 
             const auto& parse_jwt_opt = fluffy_utils::StringEncryption::parse_jwt(token, random_string);
             if (not parse_jwt_opt.has_value()) {
-                return std::unexpected("parse_jwt_opt failed!");
+                return std::unexpected<std::string>("parse_jwt_opt failed!");
             }
 
             const auto& parse_jwt        = parse_jwt_opt.value();
