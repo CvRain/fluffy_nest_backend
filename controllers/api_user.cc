@@ -88,6 +88,19 @@ void User::append(const HttpRequestPtr &req, std::function<void(const HttpRespon
 void User::remove_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     service::Logger::get_instance().get_logger()->debug("User::remove_by_id");
     try {
+        if (const auto enable_remove_config = app().getCustomConfig()["enable_remove_user"].as<std::string>();
+            enable_remove_config == "false")
+        {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::remove_by_id k400BadRequest",
+                                               .result  = "remove user is disabled",
+                                               .data    = {}};
+            service::Logger::get_instance().get_logger()->warn(
+                    "User::remove_by_id k400BadRequest remove user is disabled");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &id           = request_body.at(type::UserSchema::key_id).get<std::string>();
 
@@ -122,6 +135,19 @@ void User::remove_by_id(const HttpRequestPtr &req, std::function<void(const Http
 void User::remove_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     service::Logger::get_instance().get_logger()->debug("User::remove_by_email");
     try {
+        if (const auto enable_remove_config = app().getCustomConfig()["enable_remove_user"].as<std::string>();
+            enable_remove_config == "false")
+        {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::remove_by_id k400BadRequest",
+                                               .result  = "remove user is disabled",
+                                               .data    = {}};
+            service::Logger::get_instance().get_logger()->warn(
+                    "User::remove_by_email k400BadRequest remove user is disabled");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
 

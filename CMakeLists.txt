@@ -43,6 +43,8 @@ set(CTL_SRC
         controllers/api_hello.cc
         controllers/api_user.h
         controllers/api_user.cc
+        controllers/api_article.h
+        controllers/api_user.cc
 )
 
 set(FILTER_SRC
