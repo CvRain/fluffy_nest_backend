@@ -126,6 +126,28 @@ auto models::UserModel::has_email(const std::string &email) -> type::result<bool
     return promise.get_future().get();
 }
 
+auto models::UserModel::has_name(const std::string &name) -> type::result<bool> {
+    const auto                       db_client = drogon::app().getDbClient();
+    std::promise<type::result<bool>> promise;
+
+    auto callback = [&](const drogon::orm::Result &result) {
+        const auto &is_exist = result.at(0).at("name_exist").as<bool>();
+        promise.set_value(is_exist);
+        service::Logger::get_instance().get_logger()->debug(
+                "UserModel::has_name: name: {} - {}", name, is_exist ? "true" : "false");
+    };
+    auto exceptionCallback = [&](const drogon::orm::DrogonDbException &e) {
+        const auto error_str = fmt::format("UserModel::has_name: exception: {}", e.base().what());
+        service::Logger::get_instance().get_logger()->error("UserModel::has_name exception: {}", e.base().what());
+        promise.set_value(std::unexpected(error_str));
+    };
+    db_client->execSqlAsync("select exists(select users.name from users where name = $1) as name_exist;",
+                            callback,
+                            exceptionCallback,
+                            name);
+    return promise.get_future().get();
+}
+
 auto models::UserModel::remove_by_id(const std::string &id) -> type::result<int> {
     const auto db_client = drogon::app().getDbClient();
 

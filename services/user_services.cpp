@@ -49,6 +49,16 @@ namespace service {
         return result.value();
     }
 
+    auto UserServices::name_exist(const std::string& name) const -> std::optional<bool> {
+        service::Logger::get_instance().get_logger()->info("UserServices::name_exist {}", name);
+        const auto result = models::UserModel::has_name(name);
+        if (not result.has_value()) {
+            service::Logger::get_instance().get_logger()->error("UserServices::name_exist {}", result.error());
+            throw std::runtime_error(result.error().data());
+        }
+        return result.value();
+    }
+
     auto UserServices::email_exist(const std::string& email) const -> std::optional<bool> {
         const auto result = models::UserModel::has_email(email);
         if (not result.has_value()) {

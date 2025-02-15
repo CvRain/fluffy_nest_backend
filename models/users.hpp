@@ -32,6 +32,10 @@ namespace models {
         /// @return 存在为true，不存在为false，判断错误为异常
         [[nodiscard]] static auto has_email(const std::string& email) -> type::result<bool>;
 
+        /// 判断表中是否存在name
+        /// @return 存在为true，不存在为false，判断错误为异常
+        [[nodiscard]] static auto has_name(const std::string& name) -> type::result<bool>;
+
         /// 通过id删除一条数据
         /// @return 返回执行后影响的行数，删除错误为异常
         static auto remove_by_id(const std::string& id) -> type::result<int>;
