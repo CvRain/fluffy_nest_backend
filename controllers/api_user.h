@@ -19,7 +19,6 @@ namespace api {
         METHOD_ADD(User::get_by_email,"/get/email",Get, filter::keywords::enable_cores, filter::keywords::user_email_exist);
         METHOD_ADD(User::login, "/login", Post, filter::keywords::enable_cores, filter::keywords::user_email_exist);
         METHOD_ADD(User::token_login, "/login/token", Get, filter::keywords::enable_cores);
-        METHOD_ADD(User::enable_register, "/enable_register", Get, filter::keywords::enable_cores);
         METHOD_ADD(User::name_exist, "/exist/name", Get, filter::keywords::enable_cores);
         METHOD_LIST_END
 
@@ -32,7 +31,6 @@ namespace api {
         static void get_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void token_login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-        static void enable_register(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void name_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api
