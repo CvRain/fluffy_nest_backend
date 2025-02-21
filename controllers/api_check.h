@@ -11,8 +11,14 @@ namespace api {
     public:
         METHOD_LIST_BEGIN
         METHOD_ADD(Check::enable_register, "/enable_register", Get, filter::keywords::enable_cores);
+        METHOD_ADD(Check::name_exist, "/exist/name", Get, filter::keywords::enable_cores);
+        METHOD_ADD(Check::email_exist, "/exist/email", Get, filter::keywords::enable_cores);
+        METHOD_ADD(Check::id_exist, "/exist/id", Get, filter::keywords::enable_cores);
         METHOD_LIST_END
     private:
         static void enable_register(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void name_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void email_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void id_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api

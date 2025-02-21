@@ -15,11 +15,12 @@ namespace api {
         METHOD_ADD(User::append, "/append", Post, filter::keywords::enable_cores);
         METHOD_ADD(User::remove_by_id, "/remove/id", Delete, filter::keywords::enable_cores);
         METHOD_ADD(User::remove_by_email, "/remove/email", Delete, filter::keywords::enable_cores);
-        METHOD_ADD(User::get_by_id, "/get/id", Get, filter::keywords::enable_cores, filter::keywords::user_id_exist);
-        METHOD_ADD(User::get_by_email,"/get/email",Get, filter::keywords::enable_cores, filter::keywords::user_email_exist);
         METHOD_ADD(User::login, "/login", Post, filter::keywords::enable_cores, filter::keywords::user_email_exist);
         METHOD_ADD(User::token_login, "/login/token", Get, filter::keywords::enable_cores);
         METHOD_ADD(User::name_exist, "/exist/name", Get, filter::keywords::enable_cores);
+        METHOD_ADD(User::get_by_id, "/one/id", Get, filter::keywords::enable_cores, filter::keywords::user_id_exist);
+        METHOD_ADD(User::get_by_email,"/one/email",Get, filter::keywords::enable_cores, filter::keywords::user_email_exist);
+
         METHOD_LIST_END
 
     private:
@@ -32,5 +33,6 @@ namespace api {
         static void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void token_login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void name_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void get_one(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api
