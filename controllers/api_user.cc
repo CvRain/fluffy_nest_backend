@@ -336,7 +336,7 @@ void User::name_exist(const HttpRequestPtr &req, std::function<void(const HttpRe
         const auto  body = fromRequest<nlohmann::json>(*req);
         const auto &name = body.at(type::UserSchema::key_name).get<std::string>();
 
-        if (const auto name_exist_result = service::UserServices::get_instance().name_exist(name).value_or(false);
+        if (const auto name_exist_result = service::UserServices::name_exist(name).value_or(false);
             not name_exist_result)
         {
             type::BasicResponse basic_response{

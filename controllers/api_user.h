@@ -33,6 +33,5 @@ namespace api {
         static void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void token_login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void name_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-        static void get_one(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api
