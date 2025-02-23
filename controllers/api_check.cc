@@ -92,26 +92,28 @@ void Check::email_exist(const HttpRequestPtr &req, std::function<void(const Http
 void Check::id_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     service::Logger::get_instance().get_logger()->debug("User::id_exist");
 
-    // try {
-    //     const auto  request_body = fromRequest<nlohmann::json>(*req);
-    //     const auto &user_id      = request_body.at("id").get<std::string>();
-    //
-    //     const auto result = service::UserServices::id_exist(user_id);
-    //     auto response = result.and_then([&](const bool &exist) {
-    //         if (exist) {
-    //             return type::BasicResponse{.code    = k200OK,
-    //                                        .message = "User::id_exist k200OK",
-    //                                        .result  = "user id exist",
-    //                                        .data    = ""};
-    //         }
-    //         return type::BasicResponse{.code    = k200OK,
-    //                                    .message = "User::id_exist k200OK",
-    //                                    .result  = "user id not exist",
-    //                                    .data    = ""};
-    //     });
-    //     callback(newHttpJsonResponse(response.to_json()));
-    // }
-    // catch (const std::exception &e) {
-    //     exception::ExceptionHandler::handle(req, std::move(callback), e);
-    // }
+    try {
+        const auto  request_body = fromRequest<nlohmann::json>(*req);
+        const auto &user_id      = request_body.at("id").get<std::string>();
+
+        const auto result = service::UserServices::id_exist(user_id);
+
+        auto build_response = [&](const bool exist) {
+            const auto status = exist ? k200OK : k404NotFound;
+            return type::BasicResponse{.code    = status,
+                                       .message = fmt::format("User::id_exist {}", exist ? "k200OK" : "k404NotFound"),
+                                       .result  = fmt::format("user id {}", exist ? "exist" : "not exist"),
+                                       .data    = ""}
+                    .to_json();
+        };
+
+        auto response = result.and_then([&](const bool exist) {
+                                  return std::make_optional(build_response(exist));
+                              }).value_or(nlohmann::json{});
+
+        callback(newHttpJsonResponse(std::move(response)));
+    }
+    catch (const std::exception &e) {
+        exception::ExceptionHandler::handle(req, std::move(callback), e);
+    }
 }

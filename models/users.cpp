@@ -113,21 +113,17 @@ auto models::UserModel::has_email(const std::string &email) -> type::result<bool
         promise.set_value(std::unexpected(error_str));
     };
 
-    db_client->execSqlAsync(
-            "select exists("
-            "select users.email "
-            "from users "
-            "where users.email = $1"
-            ") as email_exist;",
-            callback,
-            exceptionCallback,
-            email);
+    db_client->execSqlAsync("select exists( select users.email from users where users.email = $1 ) as email_exist;",
+                            callback,
+                            exceptionCallback,
+                            email);
 
     return promise.get_future().get();
 }
 
 auto models::UserModel::has_name(const std::string &name) -> type::result<bool> {
-    const auto                       db_client = drogon::app().getDbClient();
+    const auto db_client = drogon::app().getDbClient();
+
     std::promise<type::result<bool>> promise;
 
     auto callback = [&](const drogon::orm::Result &result) {
@@ -237,7 +233,7 @@ auto models::UserModel::get_by_email(const std::string &email) -> type::result<t
     std::promise<type::result<type::UserSchema>> promise;
 
     auto callback = [&](const drogon::orm::Result &result) {
-        if (result.size() <= 0) {
+        if (result.empty()) {
             promise.set_value(std::unexpected("UserModel::get_by_email: user not found"));
             return;
         }

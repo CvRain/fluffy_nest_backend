@@ -20,8 +20,8 @@ namespace type {
       public:
 
         int code;
-        std::string_view message;
-        std::string_view result;
+        std::string message;
+        std::string result;
         nlohmann::json data{};
 
         nlohmann::json to_json() {

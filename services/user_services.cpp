@@ -9,7 +9,7 @@
 #include "utils/string.hpp"
 
 namespace service {
-    size_t UserServices::size() const {
+    size_t UserServices::size() {
         const auto result = models::UserModel::size();
         if (not result.has_value()) {
             service::Logger::get_instance().get_logger()->error("UserServices::size {}", result.error());
@@ -17,7 +17,7 @@ namespace service {
         return result.value_or(0);
     }
 
-    auto UserServices::append(const type::UserSchema& user) const -> type::result<std::string> {
+    auto UserServices::append(const type::UserSchema& user) -> type::result<std::string> {
         const auto will_insert_user = type::UserSchema{.id          = drogon::utils::getUuid(),
                                                        .name        = user.name,
                                                        .password    = user.password,
@@ -35,12 +35,12 @@ namespace service {
         return insert_result.value() ? will_insert_user.id : "";
     }
 
-    auto UserServices::user_exist(const std::string& id, const std::string& email) const -> type::result<bool> {
+    auto UserServices::user_exist(const std::string& id, const std::string& email) -> type::result<bool> {
         const auto result = models::UserModel::has_id(id) and models::UserModel::has_email(email);
         return result;
     }
 
-    auto UserServices::id_exist(const std::string& id) const -> std::optional<bool> {
+    auto UserServices::id_exist(const std::string& id) -> std::optional<bool> {
         const auto result = models::UserModel::has_id(id);
         if (not result.has_value()) {
             service::Logger::get_instance().get_logger()->error("UserServices::id_exist {}", result.error());
@@ -49,7 +49,7 @@ namespace service {
         return result.value();
     }
 
-    auto UserServices::name_exist(const std::string& name) const -> std::optional<bool> {
+    auto UserServices::name_exist(const std::string& name) -> std::optional<bool> {
         service::Logger::get_instance().get_logger()->info("UserServices::name_exist {}", name);
         const auto result = models::UserModel::has_name(name);
         if (not result.has_value()) {
@@ -59,7 +59,7 @@ namespace service {
         return result.value();
     }
 
-    auto UserServices::email_exist(const std::string& email) const -> std::optional<bool> {
+    auto UserServices::email_exist(const std::string& email) -> std::optional<bool> {
         const auto result = models::UserModel::has_email(email);
         if (not result.has_value()) {
             service::Logger::get_instance().get_logger()->error("UserServices::email_exist {}", result.error());
@@ -68,7 +68,7 @@ namespace service {
         return result.value();
     }
 
-    auto UserServices::remove_by_id(const std::string& id) const -> std::optional<bool> {
+    auto UserServices::remove_by_id(const std::string& id) -> std::optional<bool> {
         const auto result = models::UserModel::remove_by_id(id);
 
         if (not result.has_value()) {
@@ -83,7 +83,7 @@ namespace service {
         return true;
     }
 
-    auto UserServices::remove_by_email(const std::string& email) const -> std::optional<bool> {
+    auto UserServices::remove_by_email(const std::string& email) -> std::optional<bool> {
         const auto result = models::UserModel::remove_by_email(email);
         if (not result.has_value()) {
             service::Logger::get_instance().get_logger()->error("UserServices::remove_by_email {}", result.error());
@@ -96,7 +96,7 @@ namespace service {
         return true;
     }
 
-    auto UserServices::get_by_id(const std::string& id) const -> std::optional<type::UserSchema> {
+    auto UserServices::get_by_id(const std::string& id) -> std::optional<type::UserSchema> {
         const auto result = models::UserModel::get_by_id(id);
         if (not result.has_value()) {
             service::Logger::get_instance().get_logger()->error("UserServices::get_by_id {}", result.error());
@@ -105,7 +105,7 @@ namespace service {
         return result.value();
     }
 
-    auto UserServices::get_by_email(const std::string& email) const -> std::optional<type::UserSchema> {
+    auto UserServices::get_by_email(const std::string& email) -> std::optional<type::UserSchema> {
         const auto result = models::UserModel::get_by_email(email);
         if (not result.has_value()) {
             service::Logger::get_instance().get_logger()->error("UserServices::get_by_email {}", result.error());
@@ -159,7 +159,7 @@ namespace service {
                 return std::unexpected("aud is not fluffy_nest::client");
             }
 
-            const auto& id_exist = service::UserServices::get_instance().id_exist(jwt_body.payload.user_id);
+            const auto& id_exist = service::UserServices::id_exist(jwt_body.payload.user_id);
             if (not id_exist.has_value()) {
                 return std::unexpected("id_exist failed!");
             }

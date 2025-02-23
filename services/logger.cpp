@@ -5,7 +5,7 @@
 #include "logger.hpp"
 
 #include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h> 
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace service {
     void Logger::init(spdlog::level::level_enum level, const std::string& log_file_path) {
@@ -35,8 +35,5 @@ namespace service {
         return new_logger;
     }
 
-    std::shared_ptr<spdlog::logger> & Logger::get_logger() {
-        return logger;
-    }
-
-}
+    std::shared_ptr<spdlog::logger>& Logger::get_logger() { return logger; }
+}  // namespace service

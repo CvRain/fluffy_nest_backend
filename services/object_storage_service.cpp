@@ -7,6 +7,7 @@
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/Bucket.h>
+#include <aws/s3/model/ListObjectsV2Request.h>
 #include <aws/s3/model/PutObjectRequest.h>
 #include <drogon/HttpAppFramework.h>
 #include <stdexcept>
@@ -97,6 +98,40 @@ namespace service {
             return std::unexpected(put_object_result.error());
         }
         return true;
+    }
+
+    //todo 完成树状目录返回
+    auto ObjectStorageService::recursive_directory(const std::string& path) -> type::result<nlohmann::json> {
+        Aws::S3::Model::ListObjectsV2Request request;
+        request.WithBucket(Aws::String{bucket_name});
+
+        auto continuation_token = Aws::String{};
+        auto all_objects        = Aws::Vector<Aws::S3::Model::Object>{};
+
+        do {
+            if (not continuation_token.empty()) {
+                request.SetContinuationToken(continuation_token);
+            }
+
+            auto outcome = s3_client->ListObjectsV2(request);
+            if (not outcome.IsSuccess()) {
+                Logger::error("Failed to list objects: {}", outcome.GetError().GetMessage().data());
+                return false;
+            }
+
+            Aws::Vector<Aws::S3::Model::Object> objects = outcome.GetResult().GetContents();
+            all_objects.insert(all_objects.end(), objects.begin(), objects.end());
+            continuation_token = outcome.GetResult().GetNextContinuationToken();
+        }
+        while (not continuation_token.empty());
+
+        Logger::debug("Found {} objects", all_objects.size());
+
+        for (const auto& object: all_objects) {
+            Logger::debug("Object: {}", object.GetKey().data());
+        }
+
+        return {};
     }
 
 }  // namespace service
