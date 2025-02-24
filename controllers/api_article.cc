@@ -30,7 +30,8 @@ namespace api {
                 callback(build_response(k200OK, "Directory created successfully", "Success"));
             }
             else {
-                service::Logger::get_instance().get_logger()->error("Create directory failed: {}", result.error());  // 添加错误日志
+                service::Logger::get_instance().get_logger()->error("Create directory failed: {}",
+                                                                    result.error());  // 添加错误日志
                 callback(build_response(k409Conflict, "Directory creation conflict", result.error()));
             }
         }
@@ -40,5 +41,11 @@ namespace api {
     }
 
     void Article::recursive_directory(const HttpRequestPtr&                         req,
-                                      std::function<void(const HttpResponsePtr&)>&& callback) {}
+                                      std::function<void(const HttpResponsePtr&)>&& callback) {
+        const auto request = service::ObjectStorageService::get_instance().recursive_directory();
+        callback(toResponse(request.value_or(nlohmann::json{})));
+    }
+
+    void Article::personal_directory(const HttpRequestPtr&                         req,
+                                     std::function<void(const HttpResponsePtr&)>&& callback) {}
 }  // namespace api

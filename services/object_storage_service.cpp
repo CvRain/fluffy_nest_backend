@@ -14,6 +14,7 @@
 
 #include "services/logger.hpp"
 #include "utils/drogon_specialization.hpp"
+#include "utils/object_parser.hpp"
 
 namespace service {
     void ObjectStorageService::init() {
@@ -100,38 +101,74 @@ namespace service {
         return true;
     }
 
-    //todo 完成树状目录返回
-    auto ObjectStorageService::recursive_directory(const std::string& path) -> type::result<nlohmann::json> {
+    // todo 完成树状目录返回
+    auto ObjectStorageService::recursive_directory(const std::string& path) const -> type::result<nlohmann::json> {
         Aws::S3::Model::ListObjectsV2Request request;
         request.WithBucket(Aws::String{bucket_name});
+
+        std::string prefix{};
+        if (!path.empty()) {
+            prefix = path + "/";
+        }
+        else {
+            prefix = "";
+        }
 
         auto continuation_token = Aws::String{};
         auto all_objects        = Aws::Vector<Aws::S3::Model::Object>{};
 
         do {
-            if (not continuation_token.empty()) {
+            if (!continuation_token.empty()) {
                 request.SetContinuationToken(continuation_token);
             }
 
             auto outcome = s3_client->ListObjectsV2(request);
-            if (not outcome.IsSuccess()) {
-                Logger::get_instance().get_logger()->error("Failed to list objects: {}", outcome.GetError().GetMessage().data());
+            if (!outcome.IsSuccess()) {
+                Logger::error_runtime("Failed to list objects: {}", outcome.GetError().GetMessage().data());
                 return false;
             }
 
-            Aws::Vector<Aws::S3::Model::Object> objects = outcome.GetResult().GetContents();
+            auto objects = outcome.GetResult().GetContents();
             all_objects.insert(all_objects.end(), objects.begin(), objects.end());
             continuation_token = outcome.GetResult().GetNextContinuationToken();
+        } while (!continuation_token.empty());
+
+        std::vector<ParsedObject> parsed_objects;
+        for (const auto& object : all_objects) {
+            std::string key = object.GetKey();
+
+            service::Logger::debug_runtime("List object: {}", key);
+            if (!prefix.empty() && key.find(prefix) != 0) {
+                continue;
+            }
+
+            std::string relative_key;
+            if (prefix.empty()) {
+                relative_key = key;
+            } else {
+                relative_key = key.substr(prefix.length());
+            }
+
+            auto parts = ObjectParser::split_path(relative_key);
+            if (parts.empty()) {
+                continue;
+            }
+
+            const bool is_directory = (key.back() == '/');
+            parsed_objects.push_back({parts, is_directory});
         }
-        while (not continuation_token.empty());
 
-        Logger::debug_runtime("Found {} objects", all_objects.size());
+        nlohmann::json root;
+        root["name"] = ObjectParser::get_last_part(path.empty() ? "" : path);
+        root["type"] = "directory";
+        root["children"] = nlohmann::json::array();
 
-        for (const auto& object: all_objects) {
-            Logger::debug_runtime("Object: {}", object.GetKey().data());
+        for (const auto& parsed : parsed_objects) {
+            ObjectParser::process_parts(root, parsed.parts, parsed.is_directory);
         }
 
-        return {};
+        std::cout << root.dump() << std::endl;
+
+        return root;
     }
-
 }  // namespace service

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <drogon/HttpController.h>
+#include <drogon/IntranetIpFilter.h>
 
 #include "filters/filter_keywords.h"
 #include "services/logger.hpp"
@@ -20,7 +21,13 @@ namespace api {
                    filter::keywords::user_id_exist);
 
         METHOD_ADD(Article::recursive_directory,
-                   "/directory/recursive",
+                  "/directory/recursive",
+                  Get,
+                  "drogon::IntranetIpFilter",
+                  filter::keywords::enable_cores);
+
+        METHOD_ADD(Article::personal_directory,
+                   "/directory/personal",
                    Post,
                    filter::keywords::enable_cores,
                    filter::keywords::user_auth,
@@ -34,5 +41,9 @@ namespace api {
 
         static void recursive_directory(const HttpRequestPtr                          &req,
                                         std::function<void(const HttpResponsePtr &)> &&callback);
+
+        static void personal_directory(const HttpRequestPtr                          &req,
+                                        std::function<void(const HttpResponsePtr &)> &&callback);
+
     };
 }  // namespace api

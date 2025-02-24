@@ -94,6 +94,8 @@ set(UTILS_SRC
         utils/exception_handler.hpp
         utils/string.cpp
         utils/string.hpp
+        utils/object_parser.hpp
+        utils/object_parser.cpp
 )
 
 drogon_create_views(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/views

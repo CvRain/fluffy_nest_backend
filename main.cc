@@ -6,6 +6,7 @@
 void print_logo();
 void framework_init();
 void service_init();
+void service_test();
 void cleanup();
 
 int main() {
@@ -33,8 +34,8 @@ void print_logo() {
  | |    | |___| |__| | |    | |       | |       | |\  | |____ ____) |  | |
  |_|    |______\____/|_|    |_|       |_|       |_| \_|______|_____/   |_|
 )";
-    service::Logger::get_instance().get_logger()->info(text_logo);
-    service::Logger::get_instance().get_logger()->info("Hello fluffy nest");
+    service::Logger::info(text_logo);
+    service::Logger::info("Hello fluffy nest");
 }
 
 void framework_init() {
@@ -84,10 +85,25 @@ void framework_init() {
 
 void service_init() {
     service::ObjectStorageService::get_instance().init();
-    service::Logger::get_instance().get_logger()->info("Service init success");
-    service::ObjectStorageService::get_instance().recursive_directory();
+    service::Logger::info("Service init success");
+
+    service_test();
 }
 
-void cleanup() {
-    service::ObjectStorageService::get_instance().shutdown_api();
+void service_test() {
+    service::Logger::info("Service test start");
+    try {
+        const auto result = service::ObjectStorageService::get_instance().recursive_directory();
+        if (not result.has_value()) {
+            service::Logger::error_runtime("ObjectStorageService::recursive_directory", result.error());
+        }
+        service::Logger::info_runtime("ObjectStorageService::recursive_directory", result.value().dump());
+    }
+    catch (const std::exception &e) {
+        service::Logger::error_runtime("service_test", e.what());
+    }
+    service::Logger::info("Service test end");
 }
+
+
+void cleanup() { service::ObjectStorageService::get_instance().shutdown_api(); }

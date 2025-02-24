@@ -22,7 +22,7 @@ namespace service {
         [[nodiscard]] auto list_buckets() const -> type::result<std::vector<Aws::S3::Model::Bucket>>;
         [[nodiscard]] auto put_object(const std::string& file_name, const std::string& buffer) const
                 -> type::result<std::string>;
-        [[nodiscard]] auto recursive_directory(const std::string& path = "") -> type::result<nlohmann::json>;
+        [[nodiscard]] auto recursive_directory(const std::string& path = "") const -> type::result<nlohmann::json>;
 
         [[nodiscard]] static auto create_directory(const std::string& path) -> type::result<bool>;
 
