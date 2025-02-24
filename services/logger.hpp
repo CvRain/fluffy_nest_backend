@@ -5,21 +5,23 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
+#include <fmt/core.h>
 #include <memory>
 #include <spdlog/spdlog.h>
 
 #include "models/singleton_prototype.hpp"
 
 namespace service {
-    // 限制args需要能够转换为std::string
-    template <typename T>
-    concept StringConvertible = requires(T t) {
-        {std::to_string(t)} -> std::same_as<std::string>;
-    } || std::convertible_to<T, std::string>;
+    template<typename T>
+    concept Formattable = requires(T t) {
+        {
+            fmt::format("{}", t)
+        } -> std::convertible_to<std::string>;
+    };
 
-    template <typename... Args>
-    concept input_args = (StringConvertible<Args> && ...);
 
+    template<typename... Args>
+    concept input_args = (Formattable<Args> && ...);
 
     class Logger : public models::Singleton<Logger> {
     public:
@@ -28,29 +30,136 @@ namespace service {
 
         [[nodiscard]] auto create_logger(const std::string& logger_name) const -> std::shared_ptr<spdlog::logger>;
 
+        /**
+         * 启用编译期检查，在debug模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
         template<input_args... Args>
-        static auto debug(Args&&... args) -> void {
-            get_instance().get_logger()->debug(std::forward<Args>(args)...);
+        static auto debug(fmt::format_string<Args...> fmt, Args&&... args) -> void {
+            get_instance().get_logger()->debug(fmt, std::forward<Args>(args)...);
         }
 
+        /**
+         * 运行时格式字符串版本，在debug模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
         template<input_args... Args>
-        static auto info(Args&&... args) -> void {
-            get_instance().get_logger()->info(std::forward<Args>(args)...);
+        static void debug_runtime(const std::string_view fmt, Args&&... args) {
+            get_instance().get_logger()->debug(fmt::runtime(fmt), std::forward<Args>(args)...);
         }
 
+        /**
+         * 启用编译期检查，在info模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
         template<input_args... Args>
-        static auto warn(Args&&... args) -> void {
-            get_instance().get_logger()->warn(std::forward<Args>(args)...);
+        static auto info(fmt::format_string<Args...> fmt, Args&&... args) -> void {
+            get_instance().get_logger()->info(fmt, std::forward<Args>(args)...);
         }
 
+        /**
+         * 运行时格式字符串版本，在info模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
         template<input_args... Args>
-        static auto error(Args&&... args) -> void {
-            get_instance().get_logger()->error(std::forward<Args>(args)...);
+        static auto info_runtime(const std::string_view fmt, Args&&... args) -> void {
+            get_instance().get_logger()->info(fmt::runtime(fmt), std::forward<Args>(args)...);
         }
 
+        /**
+         * 启用编译期检查，在warn模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
         template<input_args... Args>
-        static auto critical(Args&&... args) -> void {
-            get_instance().get_logger()->critical(std::forward<Args>(args)...);
+        static auto warn(fmt::format_string<Args...> fmt, Args&&... args) -> void {
+            get_instance().get_logger()->warn(fmt, std::forward<Args>(args)...);
+        }
+
+        /**
+         * 运行时格式字符串版本，在warn模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto warn_runtime(const std::string_view fmt, Args&&... args) -> void {
+            get_instance().get_logger()->warn(fmt::runtime(fmt), std::forward<Args>(args)...);
+        }
+
+        /**
+         * 启用编译期检查，在error模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto error(fmt::format_string<Args...> fmt, Args&&... args) -> void {
+            get_instance().get_logger()->error(fmt, std::forward<Args>(args)...);
+        }
+
+        /**
+         * 运行时格式字符串版本，在error模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto error_runtime(const std::string_view fmt, Args&&... args) -> void {
+            get_instance().get_logger()->error(fmt::runtime(fmt), std::forward<Args>(args)...);
+        }
+
+        /**
+         * 启用编译期检查，在critical模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto critical(fmt::format_string<Args...> fmt, Args&&... args) -> void {
+            get_instance().get_logger()->critical(fmt, std::forward<Args>(args)...);
+        }
+
+        /**
+         * 运行时格式字符串版本，在critical模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto critical_runtime(const std::string_view fmt, Args&&... args) -> void {
+            get_instance().get_logger()->critical(fmt::runtime(fmt), std::forward<Args>(args)...);
+        }
+
+        /**
+         *启用编译期检查，在trace模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto trace(fmt::format_string<Args...> fmt, Args&&... args) -> void {
+            get_instance().get_logger()->trace(fmt, std::forward<Args>(args)...);
+        }
+
+        /**
+         * 运行时格式字符串版本，在trace模式下的日志输出函数
+         * @tparam Args 可被转换为字符串的常量类型
+         * @param fmt 格式化字符串
+         * @param args 传入参数
+         */
+        template<input_args... Args>
+        static auto trace_runtime(const std::string_view fmt, Args&&... args) -> void {
+            get_instance().get_logger()->trace(fmt::runtime(fmt), std::forward<Args>(args)...);
         }
 
     private:

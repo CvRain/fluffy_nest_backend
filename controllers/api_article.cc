@@ -30,7 +30,7 @@ namespace api {
                 callback(build_response(k200OK, "Directory created successfully", "Success"));
             }
             else {
-                service::Logger::error("Create directory failed: {}", result.error());  // 添加错误日志
+                service::Logger::get_instance().get_logger()->error("Create directory failed: {}", result.error());  // 添加错误日志
                 callback(build_response(k409Conflict, "Directory creation conflict", result.error()));
             }
         }

@@ -115,7 +115,7 @@ namespace service {
 
             auto outcome = s3_client->ListObjectsV2(request);
             if (not outcome.IsSuccess()) {
-                Logger::error("Failed to list objects: {}", outcome.GetError().GetMessage().data());
+                Logger::get_instance().get_logger()->error("Failed to list objects: {}", outcome.GetError().GetMessage().data());
                 return false;
             }
 
@@ -125,10 +125,10 @@ namespace service {
         }
         while (not continuation_token.empty());
 
-        Logger::debug("Found {} objects", all_objects.size());
+        Logger::debug_runtime("Found {} objects", all_objects.size());
 
         for (const auto& object: all_objects) {
-            Logger::debug("Object: {}", object.GetKey().data());
+            Logger::debug_runtime("Object: {}", object.GetKey().data());
         }
 
         return {};

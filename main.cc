@@ -85,6 +85,7 @@ void framework_init() {
 void service_init() {
     service::ObjectStorageService::get_instance().init();
     service::Logger::get_instance().get_logger()->info("Service init success");
+    service::ObjectStorageService::get_instance().recursive_directory();
 }
 
 void cleanup() {
