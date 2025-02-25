@@ -21,14 +21,14 @@ namespace api {
                    filter::keywords::user_id_exist);
 
         METHOD_ADD(Article::recursive_directory,
-                  "/directory/recursive",
-                  Get,
-                  "drogon::IntranetIpFilter",
-                  filter::keywords::enable_cores);
+                   "/directory/recursive",
+                   Get,
+                   filter::keywords::allow_intranet_access,
+                   filter::keywords::enable_cores);
 
         METHOD_ADD(Article::personal_directory,
                    "/directory/personal",
-                   Post,
+                   Get,
                    filter::keywords::enable_cores,
                    filter::keywords::user_auth,
                    filter::keywords::user_id_exist);
@@ -43,7 +43,9 @@ namespace api {
                                         std::function<void(const HttpResponsePtr &)> &&callback);
 
         static void personal_directory(const HttpRequestPtr                          &req,
-                                        std::function<void(const HttpResponsePtr &)> &&callback);
+                                       std::function<void(const HttpResponsePtr &)> &&callback);
 
+        static void append_object(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void remove_object(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api

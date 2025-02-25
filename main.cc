@@ -91,13 +91,8 @@ void service_init() {
 }
 
 void service_test() {
-    service::Logger::info("Service test start");
     try {
-        const auto result = service::ObjectStorageService::get_instance().recursive_directory();
-        if (not result.has_value()) {
-            service::Logger::error_runtime("ObjectStorageService::recursive_directory", result.error());
-        }
-        service::Logger::info_runtime("ObjectStorageService::recursive_directory", result.value().dump());
+        service::Logger::info("Service test start");
     }
     catch (const std::exception &e) {
         service::Logger::error_runtime("service_test", e.what());

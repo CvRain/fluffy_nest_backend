@@ -1,4 +1,5 @@
 #include "filter_EnableCores.h"
+#include "services/logger.hpp"
 
 using namespace drogon;
 using namespace filter;
@@ -7,6 +8,11 @@ void EnableCores::doFilter(const HttpRequestPtr &req,
                          FilterCallback &&fcb,
                          FilterChainCallback &&fccb)
 {
+    // 打印访问信息
+    const auto request_ip = req->peerAddr().toIp();
+    const auto request_port = req->peerAddr().toPort();
+    service::Logger::info_runtime("Request from {}:{}", request_ip, request_port);
+
     // 设置CORS头以允许任何地址访问
     const auto resp = drogon::HttpResponse::newHttpResponse();
     const std::string &origin = req->getHeader("origin");

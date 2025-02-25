@@ -2,14 +2,14 @@
 
 #include "services/logger.hpp"
 #include "services/object_storage_service.hpp"
-#include "types/nlohmann_json_request.hpp"
 #include "types/nlohmann_json_response.hpp"
+#include "users.hpp"
 #include "utils/drogon_specialization.hpp"
 #include "utils/exception_handler.hpp"
 
 namespace api {
     void Article::create_directory(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
-        service::Logger::debug("Article::create_directory");
+        service::Logger::info("Article::create_directory");
 
         try {
             const auto request_body = fromRequest<nlohmann::json>(*req);
@@ -42,10 +42,39 @@ namespace api {
 
     void Article::recursive_directory(const HttpRequestPtr&                         req,
                                       std::function<void(const HttpResponsePtr&)>&& callback) {
-        const auto request = service::ObjectStorageService::get_instance().recursive_directory();
-        callback(toResponse(request.value_or(nlohmann::json{})));
+        service::Logger::info("Article::recursive_directory");
+        try {
+            const auto request = service::ObjectStorageService::get_instance().recursive_directory();
+            callback(toResponse(request.value_or(nlohmann::json{})));
+        }
+        catch (std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
     }
 
     void Article::personal_directory(const HttpRequestPtr&                         req,
-                                     std::function<void(const HttpResponsePtr&)>&& callback) {}
+                                     std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Article::personal_directory");
+        try {
+            const auto  request_body = *req->getJsonObject();
+            const auto& user_id      = request_body[type::UserSchema::key_id.data()].as<std::string>();
+
+            const auto result   = service::ObjectStorageService::get_instance().recursive_directory(user_id);
+            auto       response = type::BasicResponse{.code    = k200OK,
+                                                      .message = "Article::personal_directory k200OK",
+                                                      .result  = "Ok",
+                                                      .data    = result.value_or(nlohmann::json{})};
+
+            callback(toResponse(response.to_json()));
+        }
+        catch (std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
+    }
+
+    void Article::append_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {}
+
+    void Article::remove_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {}
+
+
 }  // namespace api
