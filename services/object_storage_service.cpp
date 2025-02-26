@@ -7,11 +7,14 @@
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/Bucket.h>
+#include <aws/s3/model/DeleteObjectRequest.h>
+#include <aws/s3/model/DeleteObjectsRequest.h>
 #include <aws/s3/model/ListObjectsV2Request.h>
 #include <aws/s3/model/PutObjectRequest.h>
 #include <drogon/HttpAppFramework.h>
 #include <stdexcept>
 
+#include "object_storage_service.hpp"
 #include "services/logger.hpp"
 #include "utils/drogon_specialization.hpp"
 #include "utils/object_parser.hpp"
@@ -70,14 +73,14 @@ namespace service {
         }
         return outcome.GetResult().GetBuckets();
     }
-    auto ObjectStorageService::put_object(const std::string& file_name, const std::string& buffer) const
+    auto ObjectStorageService::put_object(const std::string& object_key, const std::string& buffer) const
             -> type::result<std::string> {
         const auto stream = Aws::MakeShared<Aws::StringStream>("PutObjectStream");
         *stream << buffer.data();
 
         Aws::S3::Model::PutObjectRequest request;
         request.SetBucket(this->bucket_name);
-        request.SetKey(file_name);
+        request.SetKey(object_key);
         request.SetBody(stream);
 
         const auto outcome = s3_client->PutObject(request);
@@ -86,8 +89,49 @@ namespace service {
                                                                 outcome.GetError().GetMessage().data());
             return std::unexpected(outcome.GetError().GetMessage().data());
         }
-        service::Logger::get_instance().get_logger()->info("Put object: {}", file_name);
+        service::Logger::get_instance().get_logger()->info("Put object: {}", object_key);
         return outcome.GetResult().GetETag().data();
+    }
+
+    auto ObjectStorageService::delete_object(const std::string& object_key) const -> type::result<bool> {
+        auto request = Aws::S3::Model::DeleteObjectRequest();
+        request.WithKey(object_key).WithBucket(bucket_name);
+
+        if (const auto outcome = s3_client->DeleteObject(request); not outcome.IsSuccess()) {
+            const auto& error = outcome.GetError();
+            service::Logger::error_runtime("ObjectStorageService::delete_object error: {}", error.GetMessage());
+            return std::unexpected(error.GetMessage());
+        }
+        return true;
+    }
+
+    auto ObjectStorageService::delete_objects(std::vector<std::string> object_key) const -> type::result<bool> {
+        auto request = Aws::S3::Model::DeleteObjectsRequest();
+
+        auto delete_object = Aws::S3::Model::Delete{};
+        for (const auto& key: object_key) {
+            delete_object.AddObjects(Aws::S3::Model::ObjectIdentifier().WithKey(key));
+        }
+
+        request.SetDelete(delete_object);
+        request.SetBucket(bucket_name);
+
+        auto outcome = s3_client->DeleteObjects(request);
+        if (not outcome.IsSuccess()) {
+            const auto& error = outcome.GetError();
+            service::Logger::error_runtime("ObjectStorageService::delete_objects error: {}", error.GetMessage());
+            return std::unexpected(error.GetMessage());
+        }
+
+        service::Logger::info("Successfully deleted the objects.");
+        for (size_t i = 0; i < delete_object.GetObjects().size(); ++i) {
+            std::cout << object_key[i];
+            if (i < object_key.size() - 1) {
+                std::cout << ", ";
+            }
+        }
+        service::Logger::info_runtime("from bucket {}", bucket_name);
+        return true;
     }
 
     auto ObjectStorageService::create_directory(const std::string& path) -> type::result<bool> {
@@ -101,14 +145,14 @@ namespace service {
         return true;
     }
 
-    // todo 完成树状目录返回
-    auto ObjectStorageService::recursive_directory(const std::string& path) const -> type::result<nlohmann::json> {
+    auto ObjectStorageService::recursive_directory(const std::string& entry_path) const
+            -> type::result<nlohmann::json> {
         Aws::S3::Model::ListObjectsV2Request request;
         request.WithBucket(Aws::String{bucket_name});
 
         std::string prefix{};
-        if (!path.empty()) {
-            prefix = path + "/";
+        if (!entry_path.empty()) {
+            prefix = entry_path + "/";
         }
         else {
             prefix = "";
@@ -131,10 +175,11 @@ namespace service {
             auto objects = outcome.GetResult().GetContents();
             all_objects.insert(all_objects.end(), objects.begin(), objects.end());
             continuation_token = outcome.GetResult().GetNextContinuationToken();
-        } while (!continuation_token.empty());
+        }
+        while (!continuation_token.empty());
 
         std::vector<ParsedObject> parsed_objects;
-        for (const auto& object : all_objects) {
+        for (const auto& object: all_objects) {
             std::string key = object.GetKey();
 
             service::Logger::debug_runtime("List object: {}", key);
@@ -145,7 +190,8 @@ namespace service {
             std::string relative_key;
             if (prefix.empty()) {
                 relative_key = key;
-            } else {
+            }
+            else {
                 relative_key = key.substr(prefix.length());
             }
 
@@ -159,11 +205,11 @@ namespace service {
         }
 
         nlohmann::json root;
-        root["name"] = ObjectParser::get_last_part(path.empty() ? "" : path);
-        root["type"] = "directory";
+        root["name"]     = ObjectParser::get_last_part(entry_path.empty() ? "" : entry_path);
+        root["type"]     = "directory";
         root["children"] = nlohmann::json::array();
 
-        for (const auto& parsed : parsed_objects) {
+        for (const auto& parsed: parsed_objects) {
             ObjectParser::process_parts(root, parsed.parts, parsed.is_directory);
         }
 
