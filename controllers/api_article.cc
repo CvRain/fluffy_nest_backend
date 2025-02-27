@@ -44,7 +44,7 @@ namespace api {
                                       std::function<void(const HttpResponsePtr&)>&& callback) {
         service::Logger::info("Article::recursive_directory");
         try {
-            const auto request = service::ObjectStorageService::get_instance().recursive_directory();
+            const auto request = service::ObjectStorageService::get_instance().tree_list_directory();
             callback(toResponse(request.value_or(nlohmann::json{})));
         }
         catch (std::exception& e) {
@@ -59,7 +59,7 @@ namespace api {
             const auto  request_body = *req->getJsonObject();
             const auto& user_id      = request_body[type::UserSchema::key_id.data()].as<std::string>();
 
-            const auto result   = service::ObjectStorageService::get_instance().recursive_directory(user_id);
+            const auto result   = service::ObjectStorageService::get_instance().tree_list_directory(user_id);
             auto       response = type::BasicResponse{.code    = k200OK,
                                                       .message = "Article::personal_directory k200OK",
                                                       .result  = "Ok",
@@ -74,7 +74,16 @@ namespace api {
 
     void Article::append_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {}
 
-    void Article::remove_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {}
+    void Article::remove_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Article::remove_object");
+        try {
+            const auto request_body = fromRequest<nlohmann::json>(*req);
+            //todo 还差一个检查object是否存在
+        }
+        catch (std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
+    }
 
 
 }  // namespace api

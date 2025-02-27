@@ -49,7 +49,6 @@ namespace service {
          */
         [[nodiscard]] auto delete_object(const std::string& object_key) const -> type::result<bool>;
 
-
         /**
          * 删除一组对象
          * @param object_key 对象键组
@@ -62,8 +61,10 @@ namespace service {
          * @param entry_path 遍历的入口路径，默认为根目录
          * @return
          */
-        [[nodiscard]] auto recursive_directory(const std::string& entry_path = "") const
+        [[nodiscard]] auto tree_list_directory(const std::string& entry_path = "") const
                 -> type::result<nlohmann::json>;
+
+        [[nodiscard]] auto list_directory(const std::string& entry_path = "") const -> type::result<std::vector<std::string>>;
 
         [[nodiscard]] static auto create_directory(const std::string& path) -> type::result<bool>;
 

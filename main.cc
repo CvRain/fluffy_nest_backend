@@ -93,6 +93,7 @@ void service_init() {
 void service_test() {
     try {
         service::Logger::info("Service test start");
+        service::ObjectStorageService::get_instance().list_directory();
     }
     catch (const std::exception &e) {
         service::Logger::error_runtime("service_test", e.what());
