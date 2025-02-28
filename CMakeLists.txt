@@ -48,6 +48,8 @@ set(CTL_SRC
         controllers/api_user.cc
         controllers/api_check.h
         controllers/api_check.cc
+        controllers/api_object.h
+        controllers/api_object.cc
 )
 
 set(FILTER_SRC

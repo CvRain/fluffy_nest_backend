@@ -218,19 +218,11 @@ namespace service {
         return root;
     }
 
-    //todo
+    // todo
     auto ObjectStorageService::list_directory(const std::string& entry_path) const
             -> type::result<std::vector<std::string>> {
         auto request = Aws::S3::Model::ListObjectsV2Request();
         request.WithBucket(bucket_name);
-
-        std::string prefix{};
-        if (!entry_path.empty()) {
-            prefix = entry_path + "/";
-        }
-        else {
-            prefix = "";
-        }
 
         auto continuation_token = Aws::String{};
         auto all_objects        = Aws::Vector<Aws::S3::Model::Object>{};
@@ -243,7 +235,7 @@ namespace service {
             auto outcome = s3_client->ListObjectsV2(request);
             if (!outcome.IsSuccess()) {
                 Logger::error_runtime("Failed to list objects: {}", outcome.GetError().GetMessage().data());
-                return {};  //todo 需要返回一个错误
+                return std::unexpected(outcome.GetError().GetMessage().data());
             }
 
             auto objects = outcome.GetResult().GetContents();
@@ -252,13 +244,19 @@ namespace service {
         }
         while (!continuation_token.empty());
 
-        for (const auto& object : all_objects) {
-            std::string key = object.GetKey();
 
-            service::Logger::debug("List objects {}", key);
+        if (entry_path.empty()) {
+            return all_objects | std::views::transform([](const auto& object) { return object.GetKey(); }) |
+                   std::ranges::to<std::vector>();
         }
+        // 筛选其实字符串包含entry_path的all_object元素， entry_path可能为空
+        std::vector<std::string> out_object;
+        std::ranges::for_each(all_objects | std::views::filter([&](const auto& object) {
+                                  return object.GetKey().starts_with(entry_path);
+                              }),
+                              [&](const auto& object) { out_object.push_back(object.GetKey()); });
 
-        return {};
+        return out_object;
     }
 
 }  // namespace service

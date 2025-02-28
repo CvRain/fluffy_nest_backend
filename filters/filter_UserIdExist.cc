@@ -18,8 +18,8 @@ namespace filter {
         try {
             const auto request_body = fromRequest<nlohmann::json>(*req);
 
-            if (const auto& id = request_body.at("id").get<std::string>();
-                not service::UserServices::get_instance().id_exist(id).value())
+            if (const auto& id = request_body.at(type::UserSchema::key_user_id).get<std::string>();
+                not service::UserServices::id_exist(id).value())
             {
                 type::BasicResponse basic_response{.code    = k400BadRequest,
                                                    .message = "User::get_by_id k400BadRequest",

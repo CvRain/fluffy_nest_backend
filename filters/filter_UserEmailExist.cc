@@ -19,8 +19,8 @@ namespace filter {
             const auto  request_body = fromRequest<nlohmann::json>(*req);
             service::Logger::get_instance().get_logger()->debug("UserEmailExist::invoke: {}", request_body.dump());
 
-            if (const auto& email = request_body.at("email").get<std::string>();
-                not service::UserServices::get_instance().email_exist(email).value()) {
+            if (const auto& email = request_body.at(type::UserSchema::key_email).get<std::string>();
+                not service::UserServices::email_exist(email).value()) {
                 type::BasicResponse basic_response{.code    = k400BadRequest,
                                                    .message = "User::get_by_email k400BadRequest",
                                                    .result  = "email not exist",

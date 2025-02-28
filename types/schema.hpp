@@ -24,6 +24,8 @@ namespace type{
 
         static constexpr std::string_view key_id = "id";
         static constexpr std::string_view key_name = "name";
+        static constexpr std::string_view key_user_id = "user_id";
+        static constexpr std::string_view key_user_name = "user_name";
         static constexpr std::string_view key_password = "password";
         static constexpr std::string_view key_email = "email";
         static constexpr std::string_view key_role = "role";
