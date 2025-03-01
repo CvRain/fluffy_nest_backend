@@ -57,16 +57,29 @@ namespace service {
         [[nodiscard]] auto delete_objects(std::vector<std::string> object_key) const -> type::result<bool>;
 
         /**
-         * 递归遍历存储桶中的所有对象
+         * 递归遍历存储桶中的所有对象,并使用树状格式返回
          * @param entry_path 遍历的入口路径，默认为根目录
          * @return
          */
         [[nodiscard]] auto tree_list_directory(const std::string& entry_path = "") const
                 -> type::result<nlohmann::json>;
 
-        [[nodiscard]] auto list_directory(const std::string& entry_path = "") const -> type::result<std::vector<std::string>>;
+        /**
+         * 递归遍历存储桶中的所有对象
+         * @param entry_path 遍历的入口路径，默认为根目录
+         * @return
+         */
+        [[nodiscard]] auto list_directory(const std::string& entry_path = "") const
+                -> type::result<std::vector<std::string>>;
 
+        /**
+         * 创建一个目录（实际上是一个对象）
+         * @param path 目录的路径
+         * @return
+         */
         [[nodiscard]] static auto create_directory(const std::string& path) -> type::result<bool>;
+
+        auto get_object(const std::string& object_key) -> type::result<std::string>;
 
     private:
         std::shared_ptr<Aws::S3::S3Client> s3_client;

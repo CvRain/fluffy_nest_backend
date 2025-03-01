@@ -162,7 +162,7 @@ void User::remove_by_email(const HttpRequestPtr &req, std::function<void(const H
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
 
-        if (not service::UserServices::get_instance().email_exist(email).value()) {
+        if (not service::UserServices::email_exist(email).value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::remove_by_email k400BadRequest",
                                                .result  = "email not exist",
@@ -171,7 +171,7 @@ void User::remove_by_email(const HttpRequestPtr &req, std::function<void(const H
             callback(newHttpJsonResponse(basic_response.to_json()));
             return;
         }
-        if (not service::UserServices::get_instance().remove_by_email(email).value()) {
+        if (not service::UserServices::remove_by_email(email).value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::remove_by_email k400BadRequest",
                                                .result  = "failed to remove user",
@@ -192,9 +192,9 @@ void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpRes
     service::Logger::get_instance().get_logger()->debug("User::get_by_id");
     try {
         const auto  request_body = fromRequest<nlohmann::json>(*req);
-        const auto &id           = request_body.at(type::UserSchema::key_id).get<std::string>();
+        const auto &id           = request_body.at(type::UserSchema::key_user_id).get<std::string>();
 
-        const auto user = service::UserServices::get_instance().get_by_id(id).value();
+        const auto user = service::UserServices::get_by_id(id).value();
         const auto data = nlohmann::json{
                 {type::UserSchema::key_id, user.id},
                 {type::UserSchema::key_email, user.email},

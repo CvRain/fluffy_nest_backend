@@ -1,19 +1,21 @@
 #include "api_object.h"
 
+#include <expected>
+#include <ranges>
+
+#include "services/logger.hpp"
 #include "services/object_storage_service.hpp"
 #include "types/nlohmann_json_request.hpp"
 #include "types/nlohmann_json_response.hpp"
 #include "types/schema.hpp"
 #include "utils/exception_handler.hpp"
 
-#include <expected>
-#include <ranges>
-
 namespace api {
     void Object::list_objects(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Object::list_objects");
         try {
             const auto request_body = fromRequest<nlohmann::json>(*req);
-            const auto user_id      = request_body.at(type::UserSchema::key_id).get<std::string>();
+            const auto user_id      = request_body.at(type::UserSchema::key_user_id).get<std::string>();
 
             const auto list_result = service::ObjectStorageService::get_instance().list_directory(user_id);
 
@@ -27,8 +29,8 @@ namespace api {
             }
 
             nlohmann::json objects_group;
-            for (auto it = list_result.value().begin(); it != list_result.value().end(); ++it) {
-                objects_group.push_back(*it);
+            for (const auto & it : list_result.value()) {
+                objects_group.push_back(it);
             }
 
             auto response = type::BasicResponse{.code    = k200OK,
@@ -43,9 +45,10 @@ namespace api {
     }
 
     void Object::tree_objects(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Object::tree_objects");
         try {
             const auto request_body = fromRequest<nlohmann::json>(*req);
-            const auto user_id      = request_body.at(type::UserSchema::key_id).get<std::string>();
+            const auto user_id      = request_body.at(type::UserSchema::key_user_id).get<std::string>();
 
             const auto tree_result = service::ObjectStorageService::get_instance().tree_list_directory(user_id);
 
@@ -63,8 +66,65 @@ namespace api {
                                                 .result  = "",
                                                 .data    = tree_result.value()};
             callback(toResponse(response.to_json()));
-        }catch (const std::exception& e) {
+        }
+        catch (const std::exception& e) {
             exception::ExceptionHandler::handle(req, std::move(callback), e);
         }
     }
+
+    void Object::exist_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Object::exist_object");
+        try {
+
+        }
+        catch (const std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
+    }
+
+
+    void Object::append_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Object::append_object");
+        try {
+        }
+        catch (const std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
+    }
+    void Object::remove_object(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Object::remove_object");
+        try {
+        }
+        catch (const std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
+    }
+
+    void Object::object_url(const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& callback) {
+        service::Logger::info("Object::object_url");
+        try {
+            const auto request_body = fromRequest<nlohmann::json>(*req);
+            const auto object_key  = request_body.at("object_key").get<std::string>();
+
+            const auto result = service::ObjectStorageService::get_instance().get_object(object_key);
+            if (not result.has_value()) {
+                auto response = type::BasicResponse{.code    = k500InternalServerError,
+                                                    .message = "Object::object_url::k500InternalServerError",
+                                                    .result  = result.error(),
+                                                    .data    = ""};
+                callback(toResponse(response.to_json()));
+                return;
+            }
+            auto response = type::BasicResponse{.code    = k200OK,
+                                                .message = "Object::object_url::k200OK",
+                                                .result  = "",
+                                                .data    = result.value()};
+            callback(toResponse(response.to_json()));
+        }
+        catch (const std::exception& e) {
+            exception::ExceptionHandler::handle(req, std::move(callback), e);
+        }
+    }
+
+
 }  // namespace api

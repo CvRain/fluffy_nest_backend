@@ -35,6 +35,11 @@ namespace type{
         static constexpr std::string_view key_update_time = "update_time";
     };
 
+    class ObjectSchema {
+    public:
+
+    };
+
 }
 
 #endif //SCHEMA_HPP

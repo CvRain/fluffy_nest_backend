@@ -9,6 +9,7 @@
 #include <aws/s3/model/Bucket.h>
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/s3/model/DeleteObjectsRequest.h>
+#include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/ListObjectsV2Request.h>
 #include <aws/s3/model/PutObjectRequest.h>
 #include <drogon/HttpAppFramework.h>
@@ -145,6 +146,36 @@ namespace service {
         return true;
     }
 
+    auto ObjectStorageService::get_object(const std::string& object_key) -> type::result<std::string> {
+        auto request = Aws::S3::Model::GetObjectRequest();
+        request.SetBucket(bucket_name);
+        request.SetKey(object_key);
+
+        auto outcome = s3_client->GetObject(request);
+
+        if (not outcome.IsSuccess()) {
+            const auto& error = outcome.GetError();
+            service::Logger::error_runtime("ObjectStorageService::get_object error: {}", error.GetMessage());
+            return std::unexpected(error.GetMessage());
+        }
+
+        service::Logger::info("Successfully retrieved the object. {}::{}", object_key, outcome.GetResult().GetETag());
+
+        // return fmt::format("http://{}/{}/{}", endpoint, bucket_name, object_key);
+
+        const auto& object_storage = drogon::app().getCustomConfig()["object_storage"];
+        const auto& regin          = object_storage["region"].as<std::string>();
+        const auto& endpoint       = object_storage["endpoint"].as<std::string>();
+
+        service::Logger::debug_runtime("regin {}", regin);
+        service::Logger::debug_runtime("endpoint {}", endpoint);
+        service::Logger::debug_runtime("bucket_name {}", bucket_name);
+        service::Logger::debug_runtime("object_key {}", object_key);
+
+        return fmt::format("http://{}.{}/{}", bucket_name, endpoint, object_key);
+    }
+
+    // todo 基于list_directory函数重构一下
     auto ObjectStorageService::tree_list_directory(const std::string& entry_path) const
             -> type::result<nlohmann::json> {
         Aws::S3::Model::ListObjectsV2Request request;
@@ -218,7 +249,6 @@ namespace service {
         return root;
     }
 
-    // todo
     auto ObjectStorageService::list_directory(const std::string& entry_path) const
             -> type::result<std::vector<std::string>> {
         auto request = Aws::S3::Model::ListObjectsV2Request();

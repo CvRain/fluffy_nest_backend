@@ -24,8 +24,40 @@ namespace api {
                    filter::keywords::user_auth,
                    filter::keywords::user_id_exist);
 
+        METHOD_ADD(Object::exist_object,
+                   "/exist",
+                   Get,
+                   filter::keywords::enable_cores,
+                   filter::keywords::user_auth,
+                   filter::keywords::user_id_exist);
+
+        METHOD_ADD(Object::append_object,
+                   "/append",
+                   Post,
+                   filter::keywords::enable_cores,
+                   filter::keywords::user_auth,
+                   filter::keywords::user_id_exist);
+
+        METHOD_ADD(Object::remove_object,
+                   "/remove",
+                   Post,
+                   filter::keywords::enable_cores,
+                   filter::keywords::user_auth,
+                   filter::keywords::user_id_exist);
+
+        METHOD_ADD(Object::object_url,
+                   "/url",
+                   Get,
+                   filter::keywords::enable_cores,
+                   filter::keywords::user_auth,
+                   filter::keywords::user_id_exist);
+
         METHOD_LIST_END
         static void list_objects(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void tree_objects(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void exist_object(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void append_object(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void remove_object(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+        static void object_url(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api
