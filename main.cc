@@ -39,48 +39,67 @@ void print_logo() {
 }
 
 void framework_init() {
-    // 全局异常处理
-    drogon::app().setExceptionHandler([](const std::exception                            &e,
-                                         const drogon::HttpRequestPtr                    &req,
-                                         std::function<void(drogon::HttpResponsePtr &)> &&callback) {
-        // LOG_DEBUG << e.what();
-        Json::Value json;
-        json["code"]  = drogon::k500InternalServerError;
-        json["error"] = e.what();
-        json["data"]  = "";
-        auto resp     = drogon::HttpResponse::newHttpJsonResponse(json);
-        callback(resp);
-    });
-
-    // 跨域配置
-    drogon::app().registerSyncAdvice([](const drogon::HttpRequestPtr &req) -> drogon::HttpResponsePtr {
-        auto resp = drogon::HttpResponse::newHttpResponse();
-        resp->addHeader("Access-Control-Allow-Origin", "*");
-        resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-        resp->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        resp->addHeader("Access-Control-Allow-Credentials", "true");
-
-        if (req->method() == drogon::HttpMethod::Options) {
-            resp->setStatusCode(drogon::k204NoContent);
-            return resp;
-        }
-
-        return nullptr;
-    });
-
-    drogon::app().registerPostHandlingAdvice(
-            [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) -> void {
-                if (const auto &val = req->getHeader("Origin"); !val.empty())
-                    resp->addHeader("Access-Control-Allow-Origin", val);
-
-                if (const auto &val = req->getHeader("Access-Control-Request-Method"); !val.empty())
-                    resp->addHeader("Access-Control-Allow-Methods", val);
-
-                resp->addHeader("Access-Control-Allow-Credentials", "true");
-
-                if (const auto &val = req->getHeader("Access-Control-Request-Headers"); !val.empty())
-                    resp->addHeader("Access-Control-Allow-Headers", val);
-            });
+    drogon::app()
+            .setExceptionHandler([](const std::exception                            &e,
+                                    const drogon::HttpRequestPtr                    &req,
+                                    std::function<void(drogon::HttpResponsePtr &)> &&callback) {
+                // LOG_DEBUG << e.what();
+                Json::Value json;
+                json["code"]  = drogon::k500InternalServerError;
+                json["error"] = e.what();
+                json["data"]  = "";
+                auto resp     = drogon::HttpResponse::newHttpJsonResponse(json);
+                callback(resp);
+            })
+            .registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req,
+                                         drogon::FilterCallback      &&stop,
+                                         drogon::FilterChainCallback &&pass) {
+                if (req->method() == drogon::HttpMethod::Options) {
+                    const auto resp = drogon::HttpResponse::newHttpResponse();
+                    resp->addHeader("Access-Control-Allow-Origin", "*");
+                    resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, PUT, OPTIONS");
+                    stop(resp);
+                }
+                else {
+                    pass();
+                }
+            })
+            .registerSyncAdvice([](const drogon::HttpRequestPtr &req) -> drogon::HttpResponsePtr {
+                if (req->method() == drogon::HttpMethod::Options) {
+                    auto resp = drogon::HttpResponse::newHttpResponse();
+                    {
+                        if (const auto &val = req->getHeader("Origin"); !val.empty())
+                            resp->addHeader("Access-Control-Allow-Origin", val);
+                    }
+                    {
+                        if (const auto &val = req->getHeader("Access-Control-Request-Method"); !val.empty())
+                            resp->addHeader("Access-Control-Allow-Methods", val);
+                    }
+                    resp->addHeader("Access-Control-Allow-Credentials", "true");
+                    {
+                        if (const auto &val = req->getHeader("Access-Control-Request-Headers"); !val.empty())
+                            resp->addHeader("Access-Control-Allow-Headers", val);
+                    }
+                    return std::move(resp);
+                }
+                return {};
+            })
+            .registerPostHandlingAdvice(
+                    [](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) -> void {
+                        {
+                            if (const auto &val = req->getHeader("Origin"); !val.empty())
+                                resp->addHeader("Access-Control-Allow-Origin", val);
+                        }
+                        {
+                            if (const auto &val = req->getHeader("Access-Control-Request-Method"); !val.empty())
+                                resp->addHeader("Access-Control-Allow-Methods", val);
+                        }
+                        resp->addHeader("Access-Control-Allow-Credentials", "true");
+                        {
+                            if (const auto &val = req->getHeader("Access-Control-Request-Headers"); !val.empty())
+                                resp->addHeader("Access-Control-Allow-Headers", val);
+                        }
+                    });
 }
 
 void service_init() {

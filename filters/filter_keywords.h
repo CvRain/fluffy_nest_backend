@@ -12,6 +12,7 @@ namespace filter {
         static constexpr auto user_email_exist = "filter::UserEmailExist";
         static constexpr auto user_auth = "filter::UserAuth";
         static constexpr auto enable_cores = "filter::EnableCores";
+        static constexpr auto enable_cores_v2 = "filter::EnableCoresV2";
         static constexpr auto allow_intranet_access = "drogon::IntranetIpFilter";
         static constexpr auto allow_local_host = "drogon::LocalHostFilter";
     };
