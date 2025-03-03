@@ -191,10 +191,29 @@ void User::remove_by_email(const HttpRequestPtr &req, std::function<void(const H
 void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     service::Logger::get_instance().get_logger()->debug("User::get_by_id");
     try {
-        const auto  request_body = fromRequest<nlohmann::json>(*req);
-        const auto &id           = request_body.at(type::UserSchema::key_user_id).get<std::string>();
+        const auto& id = req->getParameter(type::UserSchema::key_user_id.data());
 
-        const auto user = service::UserServices::get_by_id(id).value();
+        if (const auto user_exist_result = service::UserServices::id_exist(id); not user_exist_result.has_value()) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::get_by_id k400BadRequest",
+                                               .result  = "id not exist",
+                                               .data    = {}};
+            service::Logger::warn("User::get_by_id k400BadRequest id not exist");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+
+        const auto get_user_result = service::UserServices::get_by_id(id);
+        if (not get_user_result.has_value()) {
+            type::BasicResponse basic_response{.code    = k400BadRequest,
+                                               .message = "User::get_by_id k400BadRequest",
+                                               .result  = "id not exist",
+                                               .data    = {}};
+            service::Logger::warn("User::get_by_id k400BadRequest id not exist");
+            callback(newHttpJsonResponse(basic_response.to_json()));
+            return;
+        }
+        const auto& user = get_user_result.value();
         const auto data = nlohmann::json{
                 {type::UserSchema::key_id, user.id},
                 {type::UserSchema::key_email, user.email},
@@ -218,10 +237,9 @@ void User::get_by_email(const HttpRequestPtr &req, std::function<void(const Http
     service::Logger::get_instance().get_logger()->debug("User::get_by_email");
 
     try {
-        const auto  body  = fromRequest<nlohmann::json>(*req);
-        const auto &email = body.at(type::UserSchema::key_email).get<std::string>();
+        const auto& email = req->getParameter(type::UserSchema::key_email.data());
 
-        const auto user = service::UserServices::get_instance().get_by_email(email).value();
+        const auto user = service::UserServices::get_by_email(email).value();
         const auto data = nlohmann::json{
                 {type::UserSchema::key_id, user.id},
                 {type::UserSchema::key_email, user.email},

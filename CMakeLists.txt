@@ -58,10 +58,9 @@ set(FILTER_SRC
         filters/filter_keywords.h
         filters/filter_UserAuth.cc
         filters/filter_UserAuth.h
-        filters/filter_UserEmailExist.cc
-        filters/filter_UserEmailExist.h
-        filters/filter_UserIdExist.cc
-        filters/filter_UserIdExist.h)
+        filters/user_validator_middleware.hpp
+        filters/user_validator_middleware.cpp
+)
 
 set(PLUGIN_SRC)
 

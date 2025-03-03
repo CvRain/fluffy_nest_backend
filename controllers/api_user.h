@@ -16,9 +16,9 @@ namespace api {
         METHOD_ADD(User::remove_by_id, "/remove/id", Options, Delete);
         METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete);
         METHOD_ADD(User::login, "/login", Options, Post, filter::keywords::user_email_exist);
-        METHOD_ADD(User::token_login, "/login/token", Options, Get, Post);
+        METHOD_ADD(User::token_login, "/login/token", Options, Get);
         METHOD_ADD(User::name_exist, "/exist/name", Options, Get);
-        METHOD_ADD(User::get_by_id, "/one/id", Options, Get, filter::keywords::user_id_exist);
+        METHOD_ADD(User::get_by_id, "/one/id", Options, Get);
         METHOD_ADD(User::get_by_email, "/one/email", Options, Get, filter::keywords::user_email_exist);
 
         METHOD_LIST_END

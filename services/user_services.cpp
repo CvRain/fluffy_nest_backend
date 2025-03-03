@@ -99,7 +99,7 @@ namespace service {
     auto UserServices::get_by_id(const std::string& id) -> std::optional<type::UserSchema> {
         const auto result = models::UserModel::get_by_id(id);
         if (not result.has_value()) {
-            service::Logger::get_instance().get_logger()->error("UserServices::get_by_id {}", result.error());
+            service::Logger::error_runtime("UserServices::get_by_id {}", result.error());
             throw std::runtime_error(result.error().data());
         }
         return result.value();

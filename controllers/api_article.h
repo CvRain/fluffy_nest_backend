@@ -15,10 +15,9 @@ namespace api {
 
         METHOD_ADD(Article::create_directory,
                    "/directory/create",
-                   Post,
+                   Put,
                    filter::keywords::enable_cores,
-                   filter::keywords::user_auth,
-                   filter::keywords::user_id_exist);
+                   filter::keywords::user_auth);
 
         METHOD_ADD(Article::recursive_directory,
                    "/directory/recursive",
@@ -30,8 +29,7 @@ namespace api {
                    "/directory/personal",
                    Get,
                    filter::keywords::enable_cores,
-                   filter::keywords::user_auth,
-                   filter::keywords::user_id_exist);
+                   filter::keywords::user_auth);
 
         METHOD_LIST_END
 

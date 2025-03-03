@@ -2,6 +2,7 @@
 
 #include "services/logger.hpp"
 #include "services/object_storage_service.hpp"
+#include "services/user_services.hpp"
 #include "types/nlohmann_json_response.hpp"
 #include "users.hpp"
 #include "utils/drogon_specialization.hpp"
@@ -25,6 +26,22 @@ namespace api {
                                                                .data    = ""}
                                                    .to_json());
             };
+
+            const auto user_exist_result = service::UserServices::id_exist(user_id);
+
+            if (!user_exist_result.has_value()) {
+                callback(build_response(k500InternalServerError,
+                                        "Article::create_directory k500InternalServerError",
+                                        "Article::create_directory User not found"));
+                return;
+            }
+
+            if (!user_exist_result.value()) {
+                callback(build_response(k404NotFound,
+                                        "Article::create_directory k404NotFound",
+                                        "Article::create_directory User not found"));
+                return;
+            }
 
             if (auto result = service::ObjectStorageService::create_directory(full_path)) {
                 callback(build_response(k200OK, "Directory created successfully", "Success"));
@@ -59,6 +76,25 @@ namespace api {
             const auto  request_body = *req->getJsonObject();
             const auto& user_id      = request_body[type::UserSchema::key_id.data()].as<std::string>();
 
+            const auto user_exist_result = service::UserServices::id_exist(user_id);
+            if (!user_exist_result.has_value()) {
+                auto response = type::BasicResponse{.code    = k500InternalServerError,
+                                                    .message = "Article::create_directory k500InternalServerError",
+                                                    .result  = "Article::create_directory User not found",
+                                                    .data    = ""};
+                callback(toResponse(response.to_json()));
+                return;
+            }
+
+            if (!user_exist_result.value()) {
+                auto response = type::BasicResponse{.code    = k404NotFound,
+                                                    .message = "Article::create_directory k404NotFound",
+                                                    .result  = "Article::create_directory User not found",
+                                                    .data    = ""};
+                callback(toResponse(response.to_json()));
+                return;
+            }
+
             const auto result   = service::ObjectStorageService::get_instance().tree_list_directory(user_id);
             auto       response = type::BasicResponse{.code    = k200OK,
                                                       .message = "Article::personal_directory k200OK",
@@ -78,7 +114,7 @@ namespace api {
         service::Logger::info("Article::remove_object");
         try {
             const auto request_body = fromRequest<nlohmann::json>(*req);
-            //todo 还差一个检查object是否存在
+            // todo 还差一个检查object是否存在
         }
         catch (std::exception& e) {
             exception::ExceptionHandler::handle(req, std::move(callback), e);
