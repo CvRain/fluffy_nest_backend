@@ -12,7 +12,7 @@
 using namespace api;
 
 void User::size(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
-    const auto user_size = service::UserServices::get_instance().size();
+    const auto user_size = service::UserServices::size();
 
     const nlohmann::json data{{"size", user_size}};
 
@@ -39,7 +39,7 @@ void User::append(const HttpRequestPtr &req, std::function<void(const HttpRespon
         user.password = drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
         user.email    = request_body.at(type::UserSchema::key_email).get<std::string>();
 
-        if (service::UserServices::get_instance().email_exist(user.email).value()) {
+        if (service::UserServices::email_exist(user.email).value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::append k400BadRequest",
                                                .result  = "email exist",
@@ -49,7 +49,7 @@ void User::append(const HttpRequestPtr &req, std::function<void(const HttpRespon
             return;
         }
 
-        if (service::UserServices::get_instance().name_exist(user.name).value()) {
+        if (service::UserServices::name_exist(user.name).value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::append k400BadRequest",
                                                .result  = "name exist",
@@ -59,7 +59,7 @@ void User::append(const HttpRequestPtr &req, std::function<void(const HttpRespon
             return;
         }
 
-        const auto append_result = service::UserServices::get_instance().append(user);
+        const auto append_result = service::UserServices::append(user);
         if (not append_result.has_value()) {
             type::BasicResponse basic_response{
                     .code = k400BadRequest, .message = "User::append k400BadRequest", .result = "", .data = {}};
@@ -115,7 +115,7 @@ void User::remove_by_id(const HttpRequestPtr &req, std::function<void(const Http
         const auto  request_body = fromRequest<nlohmann::json>(*req);
         const auto &id           = request_body.at(type::UserSchema::key_id).get<std::string>();
 
-        if (not service::UserServices::get_instance().id_exist(id).value()) {
+        if (not service::UserServices::id_exist(id).value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::remove_by_id k400BadRequest",
                                                .result  = "id not exist",
@@ -124,7 +124,7 @@ void User::remove_by_id(const HttpRequestPtr &req, std::function<void(const Http
             callback(newHttpJsonResponse(basic_response.to_json()));
             return;
         }
-        if (not service::UserServices::get_instance().remove_by_id(id).value()) {
+        if (not service::UserServices::remove_by_id(id).value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::remove_by_id k400BadRequest",
                                                .result  = "failed to remove user",
@@ -193,16 +193,6 @@ void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpRes
     try {
         const auto& id = req->getParameter(type::UserSchema::key_user_id.data());
 
-        if (const auto user_exist_result = service::UserServices::id_exist(id); not user_exist_result.has_value()) {
-            type::BasicResponse basic_response{.code    = k400BadRequest,
-                                               .message = "User::get_by_id k400BadRequest",
-                                               .result  = "id not exist",
-                                               .data    = {}};
-            service::Logger::warn("User::get_by_id k400BadRequest id not exist");
-            callback(newHttpJsonResponse(basic_response.to_json()));
-            return;
-        }
-
         const auto get_user_result = service::UserServices::get_by_id(id);
         if (not get_user_result.has_value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
@@ -268,7 +258,7 @@ void User::login(const HttpRequestPtr &req, std::function<void(const HttpRespons
         const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
         const auto &password =
                 drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
-        const auto &user = service::UserServices::get_instance().get_by_email(email).value_or(type::UserSchema{});
+        const auto &user = service::UserServices::get_by_email(email).value_or(type::UserSchema{});
 
         if (const auto saved_password = user.password; saved_password != password or saved_password.empty()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
@@ -320,7 +310,9 @@ void User::token_login(const HttpRequestPtr &req, std::function<void(const HttpR
         const auto token = req->getHeader("Authorization");
         service::Logger::get_instance().get_logger()->debug("User::token_login token: {}", token);
 
-        const auto check_result = service::UserServices::check_token(token);
+        const auto user_id = req->getParameter(type::UserSchema::key_user_id.data());
+
+        const auto check_result = service::UserServices::check_token(token, user_id);
         if (not check_result.has_value()) {
             type::BasicResponse basic_response{.code    = k400BadRequest,
                                                .message = "User::token_login k400BadRequest",
@@ -340,30 +332,6 @@ void User::token_login(const HttpRequestPtr &req, std::function<void(const HttpR
         }
         type::BasicResponse basic_response{
                 .code = k200OK, .message = "User::token_login k200OK", .result = "", .data = {}};
-        callback(newHttpJsonResponse(basic_response.to_json()));
-    }
-    catch (const std::exception &e) {
-        exception::ExceptionHandler::handle(req, std::move(callback), e);
-    }
-}
-
-
-void User::name_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
-    service::Logger::get_instance().get_logger()->debug("User::name_exist");
-    try {
-        const auto  body = fromRequest<nlohmann::json>(*req);
-        const auto &name = body.at(type::UserSchema::key_name).get<std::string>();
-
-        if (const auto name_exist_result = service::UserServices::name_exist(name).value_or(false);
-            not name_exist_result)
-        {
-            type::BasicResponse basic_response{
-                    .code = k200OK, .message = "User::name_exist k200OK", .result = "name not exist", .data = {}};
-            callback(newHttpJsonResponse(basic_response.to_json()));
-            return;
-        }
-        type::BasicResponse basic_response{
-                .code = k200OK, .message = "User::name_exist k200OK", .result = "name exist", .data = {}};
         callback(newHttpJsonResponse(basic_response.to_json()));
     }
     catch (const std::exception &e) {

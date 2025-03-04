@@ -17,10 +17,9 @@ namespace api {
         METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete);
         METHOD_ADD(User::login, "/login", Options, Post, filter::keywords::user_email_exist);
         METHOD_ADD(User::token_login, "/login/token", Options, Get);
-        METHOD_ADD(User::name_exist, "/exist/name", Options, Get);
-        METHOD_ADD(User::get_by_id, "/one/id", Options, Get);
+        METHOD_ADD(
+                User::get_by_id, "/one/id", Options, Get, filter::keywords::user_auth, filter::keywords::user_id_exist);
         METHOD_ADD(User::get_by_email, "/one/email", Options, Get, filter::keywords::user_email_exist);
-
         METHOD_LIST_END
 
     private:
@@ -32,6 +31,5 @@ namespace api {
         static void get_by_email(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
         static void token_login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-        static void name_exist(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     };
 }  // namespace api

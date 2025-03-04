@@ -23,8 +23,9 @@ namespace filter {
 
         try {
             const auto& token = req->getHeader("Authorization");
+            const auto& user_id = req->getParameter(type::UserSchema::key_user_id.data());
 
-            if (const auto result = service::UserServices::check_token(token);
+            if (const auto result = service::UserServices::check_token(token, user_id);
                 not result.has_value() || not result.value())
             {
                 throw exception::BaseException{{.code    = k401Unauthorized,

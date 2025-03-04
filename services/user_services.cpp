@@ -114,7 +114,7 @@ namespace service {
         return result.value();
     }
 
-    auto UserServices::check_token(const std::string& token) -> type::result<bool> {
+    auto UserServices::check_token(const std::string& token, const std::string& user_id) -> type::result<bool> {
         try {
             if (token.empty()) {
                 return std::unexpected("token is empty");
@@ -166,6 +166,10 @@ namespace service {
 
             if (not id_exist.value()) {
                 return std::unexpected("id_exist is false");
+            }
+
+            if (jwt_body.payload.user_id != user_id) {
+                return std::unexpected("user_id is not equal");
             }
             return true;
         }

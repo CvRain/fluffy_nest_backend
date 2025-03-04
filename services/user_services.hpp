@@ -7,6 +7,7 @@
 
 #include "models/singleton_prototype.hpp"
 #include "models/users.hpp"
+#include "types/type.hpp"
 
 namespace service {
     class UserServices final : public models::Singleton<UserServices> {
@@ -21,13 +22,15 @@ namespace service {
         [[nodiscard]] static auto remove_by_email(const std::string& email) -> std::optional<bool>;
         [[nodiscard]] static auto get_by_id(const std::string& id) -> std::optional<type::UserSchema>;
         [[nodiscard]] static auto get_by_email(const std::string& email) -> std::optional<type::UserSchema>;
-        static auto check_token(const std::string& token) -> type::result<bool>;
-
+        static auto check_token(const std::string& token, const std::string& user_id) -> type::result<bool>;
 
     private:
         std::shared_ptr<models::UserModel> user_model{};
     };
 }  // namespace service
 
+namespace service::pipes_user_service {
+    const auto append = type::MakePipe([](const type::UserSchema& user) { return UserServices::append(user); });
+}  // namespace service::pipes_user_service
 
 #endif  // USER_SERVICES_HPP
