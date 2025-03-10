@@ -135,6 +135,10 @@
       "endpoint": "",
       "region": "",
       "bucket": ""
+    },
+    "cors": {
+      "allow-origin": "localhost",
+      "allow-methods": "GET, POST, PUT, DELETE, OPTIONS"
     }
   }
 }

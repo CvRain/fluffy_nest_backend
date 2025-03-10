@@ -1,5 +1,7 @@
 #include "filter_EnableCores.h"
 
+#include <drogon/HttpAppFramework.h>
+
 #include "services/logger.hpp"
 
 using namespace drogon;
@@ -37,10 +39,13 @@ void EnableCoresV2::invoke(const HttpRequestPtr& req, MiddlewareNextCallback&& n
     const auto request_port = req->peerAddr().toPort();
     service::Logger::info_runtime("Request from {}:{} with {}", request_ip, request_port, req->methodString());
 
+    const auto allow_origin = drogon::app().getCustomConfig()["cores"]["allow-origin"].as<std::string>();
+    const auto allow_methods = drogon::app().getCustomConfig()["cores"]["allow-methods"].as<std::string>();
+
     if (req->method() == HttpMethod::Options) {
         const auto resp = HttpResponse::newHttpResponse();
-        resp->addHeader("Access-Control-Allow-Origin", "*");
-        resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+        resp->addHeader("Access-Control-Allow-Origin", allow_origin);
+        resp->addHeader("Access-Control-Allow-Methods", allow_methods);
         resp->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
         resp->addHeader("Access-Control-Allow-Credentials", "true");
         resp->setStatusCode(k204NoContent);
@@ -48,8 +53,8 @@ void EnableCoresV2::invoke(const HttpRequestPtr& req, MiddlewareNextCallback&& n
     }
 
     nextCb([&, mcb = std::move(mcb)](const HttpResponsePtr& resp) {
-        resp->addHeader("Access-Control-Allow-Origin", "*");
-        resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+        resp->addHeader("Access-Control-Allow-Origin", allow_origin);
+        resp->addHeader("Access-Control-Allow-Methods", allow_methods);
         resp->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
         resp->addHeader("Access-Control-Allow-Credentials", "true");
         mcb(resp);

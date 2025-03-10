@@ -16,19 +16,19 @@ namespace api {
         METHOD_ADD(Article::create_directory,
                    "/directory/create",
                    Put,
-                   filter::keywords::enable_cores,
+                   filter::keywords::enable_cores_v2,
                    filter::keywords::user_auth);
 
         METHOD_ADD(Article::recursive_directory,
                    "/directory/recursive",
                    Get,
                    filter::keywords::allow_intranet_access,
-                   filter::keywords::enable_cores);
+                   filter::keywords::enable_cores_v2);
 
         METHOD_ADD(Article::personal_directory,
                    "/directory/personal",
                    Get,
-                   filter::keywords::enable_cores,
+                   filter::keywords::enable_cores_v2,
                    filter::keywords::user_auth);
 
         METHOD_LIST_END

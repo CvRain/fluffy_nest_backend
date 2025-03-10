@@ -11,15 +11,38 @@ namespace api {
     class User final : public drogon::HttpController<User> {
     public:
         METHOD_LIST_BEGIN
-        METHOD_ADD(User::size, "/size", Options, Get);
-        METHOD_ADD(User::append, "/append", Options, Post);
-        METHOD_ADD(User::remove_by_id, "/remove/id", Options, Delete);
-        METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete);
-        METHOD_ADD(User::login, "/login", Options, Post, filter::keywords::user_email_exist);
-        METHOD_ADD(User::token_login, "/login/token", Options, Get);
-        METHOD_ADD(
-                User::get_by_id, "/one/id", Options, Get, filter::keywords::user_auth, filter::keywords::user_id_exist);
-        METHOD_ADD(User::get_by_email, "/one/email", Options, Get, filter::keywords::user_email_exist);
+        METHOD_ADD(User::size, "/size", Options, Get, filter::keywords::enable_cores_v2);
+
+        METHOD_ADD(User::append, "/append", Options, Post, filter::keywords::enable_cores_v2);
+
+        METHOD_ADD(User::remove_by_id, "/remove/id", Options, Delete, filter::keywords::enable_cores_v2);
+
+        METHOD_ADD(User::remove_by_email, "/remove/email", Options, Delete, filter::keywords::enable_cores_v2);
+
+        METHOD_ADD(User::login,
+                   "/login",
+                   Options,
+                   Post,
+                   filter::keywords::enable_cores_v2,
+                   filter::keywords::user_email_exist);
+
+        METHOD_ADD(User::token_login, "/login/token", Options, Get, filter::keywords::enable_cores_v2);
+
+        METHOD_ADD(User::get_by_id,
+                   "/one/id",
+                   Options,
+                   Get,
+                   filter::keywords::enable_cores_v2,
+                   filter::keywords::user_auth,
+                   filter::keywords::user_id_exist);
+
+        METHOD_ADD(User::get_by_email,
+                   "/one/email",
+                   Options,
+                   Get,
+                   filter::keywords::enable_cores_v2,
+                   filter::keywords::user_email_exist);
+
         METHOD_LIST_END
 
     private:

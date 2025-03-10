@@ -36,46 +36,46 @@ void framework_init() {
                 auto resp     = drogon::HttpResponse::newHttpJsonResponse(json);
                 callback(resp);
             })
-            .registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req,
-                                         drogon::FilterCallback      &&stop,
-                                         drogon::FilterChainCallback &&pass) {
-                // 处理 OPTIONS 预检请求
-                if (req->method() == drogon::HttpMethod::Options) {
-                    auto        resp   = drogon::HttpResponse::newHttpResponse();
-                    const auto &origin = req->getHeader("Origin");
-                    // 动态设置 Allow-Origin
-                    if (!origin.empty()) {
-                        resp->addHeader("Access-Control-Allow-Origin", origin);
-                    }
-                    else {
-                        resp->addHeader("Access-Control-Allow-Origin", "*");
-                    }
-                    // 允许的 Methods 和 Headers
-                    resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                    const auto &reqHeaders = req->getHeader("Access-Control-Request-Headers");
-                    if (!reqHeaders.empty()) {
-                        resp->addHeader("Access-Control-Allow-Headers", reqHeaders);
-                    }
-                    // 允许携带凭证（如 Cookie）
-                    resp->addHeader("Access-Control-Allow-Credentials", "true");
-                    // 设置状态码为 204（无内容）
-                    resp->setStatusCode(drogon::k204NoContent);
-                    stop(resp);
-                    return;
-                }
-                pass();
-            })
-            .registerPostHandlingAdvice([](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
-                // 为所有响应添加 CORS 头
-                const auto &origin = req->getHeader("Origin");
-                if (!origin.empty()) {
-                    resp->addHeader("Access-Control-Allow-Origin", origin);
-                }
-                else {
-                    resp->addHeader("Access-Control-Allow-Origin", "*");
-                }
-                resp->addHeader("Access-Control-Allow-Credentials", "true");
-            })
+            // .registerPreRoutingAdvice([](const drogon::HttpRequestPtr &req,
+            //                              drogon::FilterCallback      &&stop,
+            //                              drogon::FilterChainCallback &&pass) {
+            //     // 处理 OPTIONS 预检请求
+            //     if (req->method() == drogon::HttpMethod::Options) {
+            //         auto        resp   = drogon::HttpResponse::newHttpResponse();
+            //         const auto &origin = req->getHeader("Origin");
+            //         // 动态设置 Allow-Origin
+            //         if (!origin.empty()) {
+            //             resp->addHeader("Access-Control-Allow-Origin", origin);
+            //         }
+            //         else {
+            //             resp->addHeader("Access-Control-Allow-Origin", "*");
+            //         }
+            //         // 允许的 Methods 和 Headers
+            //         resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            //         const auto &reqHeaders = req->getHeader("Access-Control-Request-Headers");
+            //         if (!reqHeaders.empty()) {
+            //             resp->addHeader("Access-Control-Allow-Headers", reqHeaders);
+            //         }
+            //         // 允许携带凭证（如 Cookie）
+            //         resp->addHeader("Access-Control-Allow-Credentials", "true");
+            //         // 设置状态码为 204（无内容）
+            //         resp->setStatusCode(drogon::k204NoContent);
+            //         stop(resp);
+            //         return;
+            //     }
+            //     pass();
+            // })
+            // .registerPostHandlingAdvice([](const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp) {
+            //     // 为所有响应添加 CORS 头
+            //     const auto &origin = req->getHeader("Origin");
+            //     if (!origin.empty()) {
+            //         resp->addHeader("Access-Control-Allow-Origin", origin);
+            //     }
+            //     else {
+            //         resp->addHeader("Access-Control-Allow-Origin", "*");
+            //     }
+            //     resp->addHeader("Access-Control-Allow-Credentials", "true");
+            // })
             .run();
 }
 
@@ -89,7 +89,7 @@ void service_init() {
 void service_test() {
     try {
         service::Logger::info("Service test start");
-        //service::ObjectStorageService::get_instance().list_directory();
+        // service::ObjectStorageService::get_instance().list_directory();
     }
     catch (const std::exception &e) {
         service::Logger::error_runtime("service_test", e.what());
