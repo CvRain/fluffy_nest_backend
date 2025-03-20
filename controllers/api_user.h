@@ -33,7 +33,6 @@ namespace api {
                    Options,
                    Get,
                    filter::keywords::enable_cores_v2,
-                   filter::keywords::user_auth,
                    filter::keywords::user_id_exist);
 
         METHOD_ADD(User::get_by_email,

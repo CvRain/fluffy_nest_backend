@@ -60,13 +60,28 @@ namespace filter {
         service::Logger::info("UserEmailExistMiddleware::invoke");
 
         try {
-            std::string user_email{};
+            std::string email{};
             if (req->method() != HttpMethod::Get) {
-                user_email = req->getJsonObject()->operator[](type::UserSchema::key_email.data()).as<std::string>();
+                email = req->getJsonObject()->operator[](type::UserSchema::key_email.data()).as<std::string>();
             }
             else {
-                user_email = req->getParameter(type::UserSchema::key_email.data());
+                email = req->getParameter(type::UserSchema::key_email.data());
             }
+
+            if (email.empty()) {
+                auto response = type::BasicResponse{.code    = k400BadRequest,
+                                                    .message = "UserEmailExistMiddleware k400BadRequest",
+                                                    .result  = "Email is empty",
+                                                    .data    = ""};
+                mcb(toResponse(response.to_json()));
+                return;
+            }
+
+            std::string user_email;
+            std::ranges::transform(email.begin(), email.end(), std::back_inserter(user_email), [](const auto& c) {
+                return std::tolower(c);
+            });
+            service::Logger::info_runtime("found user: {}", user_email);
 
             const auto user_email_exist = service::UserServices::email_exist(user_email);
             if (not user_email_exist.has_value()) {

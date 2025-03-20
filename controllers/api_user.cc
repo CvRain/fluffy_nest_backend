@@ -191,7 +191,7 @@ void User::remove_by_email(const HttpRequestPtr &req, std::function<void(const H
 void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
     service::Logger::get_instance().get_logger()->debug("User::get_by_id");
     try {
-        const auto& id = req->getParameter(type::UserSchema::key_user_id.data());
+        const auto &id = req->getParameter(type::UserSchema::key_user_id.data());
 
         const auto get_user_result = service::UserServices::get_by_id(id);
         if (not get_user_result.has_value()) {
@@ -203,16 +203,17 @@ void User::get_by_id(const HttpRequestPtr &req, std::function<void(const HttpRes
             callback(newHttpJsonResponse(basic_response.to_json()));
             return;
         }
-        const auto& user = get_user_result.value();
-        const auto data = nlohmann::json{
-                {type::UserSchema::key_id, user.id},
-                {type::UserSchema::key_email, user.email},
-                {type::UserSchema::key_id, user.id},
-                {type::UserSchema::key_create_time, user.create_time.secondsSinceEpoch()},
-                {type::UserSchema::key_update_time, user.update_time.secondsSinceEpoch()},
-                {type::UserSchema::key_role, user.role},
-                {type::UserSchema::key_signature, user.signature},
-                {type::UserSchema::key_icon, user.icon},
+        const auto &user = get_user_result.value();
+        const auto  data = nlohmann::json{
+                 {type::UserSchema::key_id, user.id},
+                 {type::UserSchema::key_email, user.email},
+                 {type::UserSchema::key_name, user.name},
+                 {type::UserSchema::key_id, user.id},
+                 {type::UserSchema::key_create_time, user.create_time.secondsSinceEpoch()},
+                 {type::UserSchema::key_update_time, user.update_time.secondsSinceEpoch()},
+                 {type::UserSchema::key_role, user.role},
+                 {type::UserSchema::key_signature, user.signature},
+                 {type::UserSchema::key_icon, user.icon},
         };
         type::BasicResponse basic_response{
                 .code = k200OK, .message = "User::get_by_id k200OK", .result = "", .data = data};
@@ -227,7 +228,9 @@ void User::get_by_email(const HttpRequestPtr &req, std::function<void(const Http
     service::Logger::get_instance().get_logger()->debug("User::get_by_email");
 
     try {
-        const auto& email = req->getParameter(type::UserSchema::key_email.data());
+        const auto &origin_email = req->getParameter(type::UserSchema::key_email.data());
+        std::string email{};
+        std::ranges::transform(origin_email, email.begin(), ::tolower);
 
         const auto user = service::UserServices::get_by_email(email).value();
         const auto data = nlohmann::json{
@@ -255,9 +258,13 @@ void User::login(const HttpRequestPtr &req, std::function<void(const HttpRespons
         service::Logger::get_instance().get_logger()->info("User::login request_ip: {}", request_ip);
 
         const auto  request_body = fromRequest<nlohmann::json>(*req);
-        const auto &email        = request_body.at(type::UserSchema::key_email).get<std::string>();
+        const auto &origin_email = request_body.at(type::UserSchema::key_email).get<std::string>();
         const auto &password =
                 drogon::utils::getSha256(request_body.at(type::UserSchema::key_password).get<std::string>());
+
+        std::string email{};
+        std::ranges::transform(origin_email, std::back_inserter(email), [](const auto &c) { return std::tolower(c); });
+
         const auto &user = service::UserServices::get_by_email(email).value_or(type::UserSchema{});
 
         if (const auto saved_password = user.password; saved_password != password or saved_password.empty()) {
