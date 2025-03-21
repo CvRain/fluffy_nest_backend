@@ -3,8 +3,9 @@
 //
 
 #include "string.hpp"
-#include <openssl/sha.h>
+
 #include <openssl/hmac.h>
+#include <openssl/sha.h>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -85,14 +86,13 @@ namespace fluffy_utils {
     std::string StringEncryption::base64_encode(const std::string &in) {
         ensure_openssl_initialized();
         // 定义用于内存操作和Base64编码的生物(BIO)对象
-        BIO *bmem, *b64;
         // 定义缓冲区指针，用于直接访问内存中的数据
         BUF_MEM *bptr;
 
         // 创建并初始化Base64编码的BIO对象
-        b64 = BIO_new(BIO_f_base64());
+        BIO *b64 = BIO_new(BIO_f_base64());
         // 创建内存类型的BIO对象，用于存储编码前的数据
-        bmem = BIO_new(BIO_s_mem());
+        BIO *bmem = BIO_new(BIO_s_mem());
         // 将Base64 BIO对象推入到内存BIO对象之上，形成一个管道
         b64 = BIO_push(b64, bmem);
         // 向Base64 BIO对象写入待编码的数据
@@ -108,7 +108,7 @@ namespace fluffy_utils {
         BIO_free_all(b64);
 
         // 移除字符串中的换行符
-        result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+        result.erase(std::ranges::remove(result, '\n').begin(), result.end());
         // 返回最终的编码字符串
         return result;
     }
@@ -127,8 +127,13 @@ namespace fluffy_utils {
         unsigned char hash[EVP_MAX_MD_SIZE];
 
         // 执行HMAC-SHA256散列计算，并将结果存储在hash数组中，同时通过len返回计算出的散列长度。
-        HMAC(EVP_sha256(), key.c_str(), static_cast<int>(key.length()),
-             reinterpret_cast<const unsigned char *>(data.data()), data.length(), hash, &len);
+        HMAC(EVP_sha256(),
+             key.c_str(),
+             static_cast<int>(key.length()),
+             reinterpret_cast<const unsigned char *>(data.data()),
+             data.length(),
+             hash,
+             &len);
 
         // 创建一个字符串流对象ss，用于构建最终散列值字符串。
         std::stringstream ss;
@@ -154,7 +159,8 @@ namespace fluffy_utils {
      * 然后使用HMAC SHA-256算法和密钥对连接后的字符串进行签名，最后将签名结果与前两部分通过点号连接，
      * 形成最终的JWT令牌字符串。
      */
-    std::string StringEncryption::generate_jwt(const std::string &header, const std::string &payload,
+    std::string StringEncryption::generate_jwt(const std::string &header,
+                                               const std::string &payload,
                                                const std::string &secret) {
         // 将头部和有效载荷分别进行Base64编码，并通过点号连接
         const std::string data = base64_encode(header) + "." + base64_encode(payload);
@@ -174,12 +180,12 @@ namespace fluffy_utils {
      */
     std::string StringEncryption::generate_random_string(size_t length) {
         // 可选的字符集
-        constexpr char charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        constexpr char   charset[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         constexpr size_t max_index = sizeof(charset) - 1;
 
         // 使用随机设备初始化Mersenne Twister引擎
-        std::random_device rd;
-        std::mt19937 gen(rd());
+        std::random_device              rd;
+        std::mt19937                    gen(rd());
         std::uniform_int_distribution<> dis(0, max_index - 1);
 
         // 构建随机字符串
@@ -196,7 +202,7 @@ namespace fluffy_utils {
      * @return 生成完毕的密钥
      */
     std::string StringEncryption::generate_secret() {
-        const auto current_time = std::to_string(Date::get_current_timestamp_32());
+        const auto current_time  = std::to_string(Date::get_current_timestamp_32());
         const auto random_string = generate_random_string(6);
         return StringEncryption::sha512(random_string + current_time);
     }
@@ -209,16 +215,16 @@ namespace fluffy_utils {
     std::string StringEncryption::base64_decode(const std::string &in) {
         ensure_openssl_initialized();
 
-        const auto len = in.size();
+        const auto  len = in.size();
         std::string out;
 
         // Allocate space for the decoded data.
         // The maximum length of the decoded data is 3/4 * len.
         out.resize(len * 3 / 4);
 
-        BIO *bio = BIO_new_mem_buf(in.data(), -1); // Use -1 to indicate the entire buffer.
+        BIO *bio = BIO_new_mem_buf(in.data(), -1);  // Use -1 to indicate the entire buffer.
         BIO *b64 = BIO_new(BIO_f_base64());
-        bio = BIO_push(b64, bio);
+        bio      = BIO_push(b64, bio);
 
         // Set flags to avoid line breaks.
         BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
@@ -245,8 +251,8 @@ namespace fluffy_utils {
     std::optional<schema::Jwt> StringEncryption::parse_jwt(const std::string &jwt, const std::string &secret) {
         // 分割JWT字符串
         std::vector<std::string> parts;
-        std::stringstream ss(jwt);
-        std::string item;
+        std::stringstream        ss(jwt);
+        std::string              item;
         while (std::getline(ss, item, '.')) {
             parts.push_back(item);
         }
@@ -258,11 +264,11 @@ namespace fluffy_utils {
 
         // 解码头部和有效载荷
 
-        //std::string header_json = base64_decode(parts[0]);
-        //std::string payload_json = base64_decode(parts[1]);
-        std::string header_json = drogon::utils::base64Decode(parts[0]);
+        // std::string header_json = base64_decode(parts[0]);
+        // std::string payload_json = base64_decode(parts[1]);
+        std::string header_json  = drogon::utils::base64Decode(parts[0]);
         std::string payload_json = drogon::utils::base64Decode(parts[1]);
-        std::string signature = parts[2];
+        std::string signature    = parts[2];
 
         // 验证签名
         const std::string expected_signature = hmac_sha256(parts[0] + "." + parts[1], secret);
@@ -272,16 +278,42 @@ namespace fluffy_utils {
 
         try {
             // 解析JSON
-            nlohmann::json header = nlohmann::json::parse(header_json);
+            nlohmann::json header  = nlohmann::json::parse(header_json);
             nlohmann::json payload = nlohmann::json::parse(payload_json);
-
-        } catch (const nlohmann::json::parse_error& e) {
+        }
+        catch (const nlohmann::json::parse_error &e) {
             throw std::invalid_argument("JSON parsing error: " + std::string(e.what()));
         }
 
         return schema::Jwt{
-                .header = nlohmann::json::parse(header_json),
+                .header  = nlohmann::json::parse(header_json),
                 .payload = nlohmann::json::parse(payload_json),
         };
     }
-}
+
+    std::string StringFormat::all_lower(const std::string &str) {
+        std::string result{};
+        std::ranges::transform(str, std::back_inserter(result), [](const char c) { return std::tolower(c); });
+        return result;
+    }
+
+    std::string StringFormat::all_upper(const std::string &str) {
+        std::string result{};
+        std::ranges::transform(str, std::back_inserter(result), [](const char c) { return std::toupper(c); });
+        return result;
+    }
+
+    std::string StringFormat::first_lower(const std::string &str) {
+        if (str.empty()) {
+            return str;
+        }
+        return std::to_string(std::tolower(str[0])) + str.substr(1);
+    }
+
+    std::string StringFormat::first_upper(const std::string &str) {
+        if (str.empty()) {
+            return str;
+        }
+        return std::to_string(std::toupper(str[0])) + str.substr(1);
+    }
+}  // namespace fluffy_utils

@@ -67,6 +67,14 @@ namespace fluffy_utils {
 
         static std::string secret_string;
     };
+
+    class StringFormat {
+    public:
+        static std::string all_lower(const std::string& str);
+        static std::string all_upper(const std::string& str);
+        static std::string first_lower(const std::string& str);
+        static std::string first_upper(const std::string& str);
+    };
 }
 
 #endif //STORAGE_DELIGHT_STRING_ENCRYPTION_H
